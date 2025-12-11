@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin – View All Songs</title>
+  <style>
+    :root {
+      --bg-main: #121212;
+      --bg-page: #000000;
+      --bg-card: #181818;
+      --bg-panel: #121212;
+      --bg-player: #181818;
+      --accent: #1db954;
+      --text-main: #ffffff;
+      --text-muted: #b3b3b3;
+      --border-subtle: rgba(255,255,255,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI";
+      background: var(--bg-page);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) 80px;
+      height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      grid-row: 1 / 3;
+      background-color: var(--bg-panel);
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      border-right: 1px solid #000;
+    }
+
+    .sidebar__logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-inline: 2px;
+    }
+
+    .sidebar__logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .sidebar__logo-text {
+      font-weight: 700;
+      font-size: 17px;
+    }
+
+    .sidebar__section-title {
+      margin-top: 8px;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .sidebar__nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar__item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .sidebar__item:hover {
+      background-color: #1f1f1f;
+      color: var(--text-main);
+    }
+
+    .sidebar__item--active {
+      background-color: #1db95422;
+      color: var(--text-main);
+    }
+
+    .sidebar__item-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background-color: #1f1f1f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .sidebar__footer {
+      margin-top: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sidebar__footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 11px;
+    }
+
+    .sidebar__footer a:hover { text-decoration: underline; }
+
+    /* MAIN */
+    .main {
+      background: var(--bg-main);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 60px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 13px;
+    }
+
+    .topbar__left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: #181818;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .topbar__title { font-size: 16px; font-weight: 600; }
+
+    .admin-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #18181b;
+      color: var(--text-muted);
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #f97316;
+      color: #000;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .user-menu {
+      position: relative;
+    }
+
+    .user-menu__dropdown {
+      position: absolute;
+      right: 0;
+      top: 110%;
+      background: #18181b;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      min-width: 190px;
+      padding: 6px 0;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+      display: none;
+      z-index: 50;
+    }
+
+    .user-menu__dropdown--open { display: block; }
+
+    .user-menu__item {
+      width: 100%;
+      text-align: left;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--text-main);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .user-menu__item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .user-menu__item--label {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 4px;
+      cursor: default;
+    }
+
+    .user-menu__email {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .user-menu__item--danger {
+      color: #f97373;
+    }
+
+    .user-menu__item--danger:hover {
+      background: #451a1a;
+    }
+
+    .content {
+      flex: 1;
+      padding: 22px 28px;
+      background: radial-gradient(circle at top, #020617, #020617 65%);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-inner {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover { filter: brightness(1.05); }
+
+    .btn-small-ghost {
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 12px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    /* FILTER BAR */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .filter-input,
+    .filter-select {
+      background: #0b0b0b;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .filter-input {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .filter-select {
+      min-width: 150px;
+    }
+
+    /* TABLE */
+    .table-card {
+      margin-top: 4px;
+      background: rgba(0,0,0,0.55);
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      padding: 12px 14px 8px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 8px 6px;
+      text-align: left;
+    }
+
+    th {
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 11px;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    tbody tr:hover td {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      font-size: 10px;
+      color: var(--text-muted);
+      display: inline-block;
+    }
+
+    .cell-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-small {
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-size: 10px;
+      padding: 3px 8px;
+      cursor: pointer;
+    }
+
+    .btn-small--danger {
+      border-color: #f97373;
+      color: #fecaca;
+    }
+
+    .btn-small--danger:hover {
+      background: #451a1a;
+    }
+
+    /* PLAYER */
+    .player {
+      grid-column: 1 / 3;
+      background: var(--bg-player);
+      border-top: 1px solid #000;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .player__left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .player__cover {
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+    }
+
+    .player__text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .player__title {
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .player__center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .player__buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .player__btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--text-muted);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .player__btn--primary {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    .player__progress {
+      width: 50%;
+      height: 4px;
+      border-radius: 999px;
+      background: #333;
+      overflow: hidden;
+    }
+
+    .player__progress-fill {
+      width: 35%;
+      height: 100%;
+      background: #fff;
+    }
+
+    .player__right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .player__volume {
+      width: 90px;
+      height: 4px;
+      border-radius: 999px;
+      background: #333;
+      overflow: hidden;
+    }
+
+    .player__volume-fill {
+      width: 60%;
+      height: 100%;
+      background: #fff;
+    }
+
+    @media (max-width: 700px) {
+      .content { padding: 18px 16px; }
+      .player__center { display: none; }
+      .player__right { margin-left: auto; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">
+      <div class="sidebar__logo-icon">♪</div>
+      <div class="sidebar__logo-text">MyMusic Admin</div>
+    </div>
+
+    <div>
+      <div class="sidebar__section-title">Main</div>
+      <nav class="sidebar__nav">
+        <div class="sidebar__item"
+             onclick="window.location.href='{{ url_for('admin_page') }}'">
+          <div class="sidebar__item-icon">📊</div>
+          <span>Dashboard</span>
+        </div>
+        <div class="sidebar__item sidebar__item--active"
+             onclick="window.location.href='{{ url_for('admin_view_all_song') }}'">
+          <div class="sidebar__item-icon">🎵</div>
+          <span>Playlists</span>
+        </div>
+      </nav>
+
+ <nav class="sidebar__nav">
+      <div class="sidebar__item">
+
+      </div>
+  </div>
+
+
+    <div class="sidebar__footer">
+      <span style="font-size:11px;">v0.1 • Demo panel</span>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar__left">
+        <button class="back-btn" onclick="window.location.href='{{ url_for('admin_page') }}'">←</button>
+        <span class="topbar__title">View All Songs</span>
+        <span class="admin-badge">Admin</span>
+      </div>
+
+      <div class="user-menu">
+        <button class="avatar" id="admin-avatar-btn">
+          {{ (current_user.display_name or 'A')[0]|upper }}
+        </button>
+        <div class="user-menu__dropdown" id="admin-menu-dropdown">
+          <div class="user-menu__item user-menu__item--label">
+            {{ current_user.display_name or 'Admin' }}
+            <span class="user-menu__email">{{ current_user.email }}</span>
+          </div>
+          <button type="button" class="user-menu__item">Profile</button>
+          <button type="button" class="user-menu__item">Settings</button>
+          <button type="button"
+                  class="user-menu__item user-menu__item--danger"
+                  onclick="window.location.href='{{ url_for('logout') }}'">
+            Log out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="content-inner">
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">View All Songs</h1>
+            <p class="page-subtitle">Cari, filter, edit, atau hapus semua lagu di library.</p>
+          </div>
+
+          <button class="btn-primary" onclick="window.location.href='{{ url_for('admin_add_song') }}'">
+            + Add New Song
+          </button>
+        </div>
+
+        <!-- FILTER BAR (frontend only, belum di-hook ke backend) -->
+        <div class="filter-bar">
+          <input class="filter-input" placeholder="Search title, artist, album..." />
+          <select class="filter-select">
+            <option>All Genres</option>
+            <option>Pop</option>
+            <option>Rock</option>
+            <option>EDM</option>
+            <option>Hip-Hop</option>
+            <option>Jazz</option>
+          </select>
+          <select class="filter-select">
+            <option>Sort: Title (A-Z)</option>
+            <option>Sort: Title (Z-A)</option>
+            <option>Sort: Year (Newest)</option>
+            <option>Sort: Year (Oldest)</option>
+          </select>
+          <button class="btn-small-ghost">Reset</button>
+        </div>
+
+        <!-- TABLE -->
+        <section class="table-card">
+          <table>
+            <thead>
+            <tr>
+              <th style="width:8%;">ID</th>
+              <th style="width:30%;">Title</th>
+              <th style="width:20%;">Artist</th>
+              <th style="width:18%;">Album</th>
+              <th style="width:10%;">Genre</th>
+              <th style="width:6%;">Year</th>
+              <th style="width:8%;">Dur</th>
+              <th style="width:12%;">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for song in songs %}
+              <tr>
+                <td>S{{ '%03d' % song.id }}</td>
+                <td>{{ song.title }}</td>
+                <td>{{ song.artist }}</td>
+                <td>
+                  {% if song.album %}
+                    <span class="tag">{{ song.album }}</span>
+                  {% else %}
+                    <span class="tag">Single</span>
+                  {% endif %}
+                </td>
+                <td>{{ song.genre or '-' }}</td>
+                <td>{{ song.year or '-' }}</td>
+                <td>
+                  {% if song.duration_ms %}
+                    {% set mins = (song.duration_ms // 60000) %}
+                    {% set secs = (song.duration_ms // 1000) % 60 %}
+                    {{ mins }}:{% if secs < 10 %}0{% endif %}{{ secs }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+  <div class="cell-actions">
+    <button class="btn-small"
+            onclick="window.location.href='{{ url_for('admin_edit_song', song_id=song.id) }}'">
+      Edit
+    </button>
+
+    <form method="POST"
+          action="{{ url_for('admin_delete_song', song_id=song.id) }}"
+          style="display:inline;"
+          onsubmit="return confirm('Yakin ingin menghapus lagu ini?');">
+      <button type="submit" class="btn-small btn-small--danger">
+        Delete
+      </button>
+    </form>
+  </div>
+</td>
+
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="8" style="text-align:center; padding:20px 0; color:var(--text-muted);">
+                  Belum ada lagu di database. Klik <strong>+ Add New Song</strong> untuk menambahkan lagu pertama.
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  // Dropdown avatar admin
+  document.addEventListener('DOMContentLoaded', function () {
+    const avatarBtn = document.getElementById('admin-avatar-btn');
+    const menu = document.getElementById('admin-menu-dropdown');
+
+    if (!avatarBtn || !menu) return;
+
+    avatarBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      menu.classList.toggle('user-menu__dropdown--open');
+    });
+
+    document.addEventListener('click', function () {
+      menu.classList.remove('user-menu__dropdown--open');
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        menu.classList.remove('user-menu__dropdown--open');
+      }
+    });
+  });
+</script>
+</body>
+</html>

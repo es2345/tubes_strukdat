@@ -1,0 +1,36 @@
+{# Recommended #}
+    <section class="section">
+      <div class="section__header">
+        <h2 class="section__title">Rekomendasi untukmu berdasarkan playlist</h2>  
+        <span class="section__link">Show all</span>
+      </div>
+
+      <div class="card-row">
+        {% for song in recommended_songs %}
+          <a href="{{ url_for('song_page', song_id=song.id) }}"
+   data-shell-link
+   style="text-decoration:none; color:inherit;">
+            <article class="card song-card"
+                     data-title="{{ song.title }}"
+                     data-artist="{{ song.artist or 'Unknown artist' }}"
+                     data-cover="{{ song.cover_url or url_for('static', filename='images/default_cover.jpg') }}">
+              <div class="card__image"
+                   style="background-image:url('{{ song.cover_url or url_for('static', filename='images/default_cover.jpg') }}');">
+              </div>
+              <div class="card__title">{{ song.title }}</div>
+              <div class="card__subtitle">
+                {{ song.artist or 'Unknown artist' }}
+              </div>
+            </article>
+          </a>
+        {% else %}
+          <article class="card">
+            <div class="card__image"></div>
+            <div class="card__title">Belum ada lagu di library</div>
+            <div class="card__subtitle">
+              Tambahkan lagu lewat Admin panel untuk melihat rekomendasi di sini.
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section> 

@@ -1,0 +1,326 @@
+{% extends "base_shell.html" %}
+
+{% block title %}Settings – MyMusic{% endblock %}
+
+{% block content %}
+<style>
+  .settings-page-root {
+    padding: 18px 22px 20px;
+    background: radial-gradient(circle at top, #3b1116, #121212 45%);
+  }
+
+  .settings-page {
+    min-height: calc(100vh - 90px);
+    background: #121212;
+    border-radius: 8px;
+    padding: 24px 32px 32px;
+    max-width: 840px;
+    margin: 0 auto;
+  }
+
+  .settings-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .settings-subtitle {
+    font-size: 13px;
+    color: #b3b3b3;
+    margin-bottom: 18px;
+  }
+
+  .settings-user-line {
+    font-size: 13px;
+    color: #b3b3b3;
+    margin-bottom: 16px;
+  }
+
+  .settings-tabs {
+    display: inline-flex;
+    border-radius: 999px;
+    background: #181818;
+    padding: 3px;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+
+  .settings-tab {
+    border-radius: 999px;
+    border: none;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    background: transparent;
+    color: #b3b3b3;
+  }
+
+  .settings-tab--active {
+    background: #fff;
+    color: #000;
+    font-weight: 600;
+  }
+
+  .settings-section {
+    display: none;
+  }
+
+  .settings-section--active {
+    display: block;
+  }
+
+  .settings-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .settings-section-desc {
+    font-size: 13px;
+    color: #b3b3b3;
+    margin-bottom: 16px;
+  }
+
+  .settings-field {
+    margin-bottom: 14px;
+  }
+
+  .settings-label {
+    font-size: 13px;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .settings-input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 1px solid #404040;
+    background: #181818;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .settings-input:focus {
+    border-color: #1db954;
+  }
+
+  .settings-input[readonly] {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  .settings-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .settings-toggle-text {
+    font-size: 13px;
+  }
+
+  .settings-toggle-sub {
+    font-size: 12px;
+    color: #b3b3b3;
+  }
+
+  .settings-toggle-btn {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid #404040;
+    font-size: 12px;
+    background: #181818;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .settings-toggle-btn--active {
+    border-color: #1db954;
+    background: #1db954;
+    color: #000;
+  }
+
+  .settings-save-row {
+    margin-top: 18px;
+  }
+
+  .settings-save-btn {
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+  }
+
+  .settings-note {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #b3b3b3;
+  }
+</style>
+
+
+  <div class="settings-page-root">
+    <div class="settings-page">
+      <div class="settings-title">Settings</div>
+      <div class="settings-subtitle">
+        Manage your account details and some basic preferences.
+      </div>
+
+      <div class="settings-user-line">
+        {{ current_user.display_name or "User" }} · {{ current_user.email }}
+      </div>
+
+      <div class="settings-tabs">
+        <button class="settings-tab settings-tab--active"
+                data-tab="account">
+          Account
+        </button>
+        <button class="settings-tab"
+                data-tab="playback">
+          Playback
+        </button>
+        <button class="settings-tab"
+                data-tab="appearance">
+          Appearance
+        </button>
+      </div>
+
+      <!-- ACCOUNT SECTION -->
+      <section class="settings-section settings-section--active"
+               data-section="account">
+        <div class="settings-section-title">Account settings</div>
+        <div class="settings-section-desc">
+          Manage your account details and some basic preferences.
+        </div>
+
+        <form method="POST" action="{{ url_for('settings_page') }}">
+          <div class="settings-field">
+            <label class="settings-label">Display name</label>
+            <input class="settings-input"
+                   type="text"
+                   name="display_name"
+                   value="{{ current_user.display_name or '' }}">
+          </div>
+
+          <div class="settings-field">
+            <label class="settings-label">Email (read only)</label>
+            <input class="settings-input"
+                   type="email"
+                   value="{{ current_user.email }}"
+                   readonly>
+          </div>
+
+          <div class="settings-save-row">
+            <button type="submit" class="settings-save-btn">
+              Save changes
+            </button>
+          </div>
+
+          <p class="settings-note">
+            Display name will be updated for your profile and playlists.
+          </p>
+        </form>
+      </section>
+
+      <!-- PLAYBACK SECTION (dummy) -->
+      <section class="settings-section"
+               data-section="playback">
+        <div class="settings-section-title">Playback</div>
+        <div class="settings-section-desc">
+          Basic playback preferences (dummy, belum tersimpan ke database).
+        </div>
+
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-text">Autoplay next song</div>
+            <div class="settings-toggle-sub">
+              Continue playing similar songs when your queue ends.
+            </div>
+          </div>
+          <button class="settings-toggle-btn settings-toggle-btn--active">
+            On
+          </button>
+        </div>
+
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-text">Normalize volume</div>
+            <div class="settings-toggle-sub">
+              Keep volume at a consistent level across tracks.
+            </div>
+          </div>
+          <button class="settings-toggle-btn">
+            Off
+          </button>
+        </div>
+
+        <p class="settings-note">
+          Note: these toggles are still dummy and not stored in database.
+        </p>
+      </section>
+
+      <!-- APPEARANCE SECTION (dummy) -->
+      <section class="settings-section"
+               data-section="appearance">
+        <div class="settings-section-title">Appearance</div>
+        <div class="settings-section-desc">
+          Theme & basic visual options (dark theme only for now).
+        </div>
+
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-text">Theme</div>
+            <div class="settings-toggle-sub">
+              Only dark theme is implemented for now 🌙
+            </div>
+          </div>
+          <button class="settings-toggle-btn settings-toggle-btn--active">
+            Dark
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+{% endblock %}
+
+{% block body_extra %}
+<script data-page-init>
+  // tab switching
+  const tabButtons = document.querySelectorAll(".settings-tab");
+  const sections = document.querySelectorAll(".settings-section");
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab;
+      tabButtons.forEach((b) => b.classList.remove("settings-tab--active"));
+      sections.forEach((sec) =>
+        sec.classList.remove("settings-section--active")
+      );
+
+      btn.classList.add("settings-tab--active");
+      const target = document.querySelector(
+        `.settings-section[data-section="${tab}"]`
+      );
+      if (target) {
+        target.classList.add("settings-section--active");
+      }
+    });
+  });
+
+  // toggle button visual only (dummy)
+  document.querySelectorAll(".settings-toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault(); // jangan kirim form
+      btn.classList.toggle("settings-toggle-btn--active");
+    });
+  });
+</script>
+{% endblock %}

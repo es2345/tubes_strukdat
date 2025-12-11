@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login – MyMusic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  :root {
+    /* full monokrom */
+    --bg-main: #000000;
+    --card-bg: #101010;
+    --border-subtle: #3a3a3a;
+    --accent: #ffffff;      /* tombol utama = putih */
+    --text-main: #ffffff;
+    --text-muted: #b3b3b3;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-wrapper {
+    max-width: 520px;
+    width: 100%;
+    padding: 40px 24px 60px;
+  }
+
+  .login-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+    font-size: 38px;
+  }
+
+  .login-logo span {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000000;
+    font-size: 26px;
+    font-weight: 900;
+  }
+
+  .progress-bar {
+    height: 2px;
+    background-color: #222222;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .progress-bar__fill {
+    height: 100%;
+    width: 0;
+    background-color: var(--accent); /* putih */
+    transition: width 0.25s ease;
+  }
+
+  .step-card {
+    background-color: var(--card-bg);
+    padding: 28px 28px 30px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+
+  .step { display: none; }
+  .step--active { display: block; }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .back-btn {
+    border: none;
+    background: transparent;
+    color: #ffffff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+
+  .step-title {
+    margin-top: 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .form-group {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  label { font-weight: 600; }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    background-color: #000000;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+    padding: 10px 12px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+  }
+
+  input::placeholder { color: var(--text-muted); }
+
+  .primary-btn {
+    margin-top: 18px;
+    width: 100%;
+    border-radius: 999px;
+    border: none;
+    background-color: var(--accent); /* putih */
+    color: #000000;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 12px 18px;
+    cursor: pointer;
+  }
+
+  .primary-btn:hover {
+    filter: brightness(0.92);
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #333333;
+  }
+
+  .social-btn {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px solid #ffffff;
+    background: transparent;
+    color: #ffffff;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .social-btn:hover {
+    background-color: #151515;
+  }
+
+  .social-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  .signup-text {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .signup-text a {
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .signup-text a:hover {
+    text-decoration: underline;
+  }
+
+  .link-inline {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #e0e0e0;
+    cursor: pointer;
+  }
+
+  .password-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .password-row input {
+    flex: 1;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+  }
+
+  .password-toggle {
+    width: 44px;
+    height: 40px;
+    border-radius: 0 4px 4px 0;
+    border: 1px solid var(--border-subtle);
+    border-left: none;
+    background-color: #000000;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .login-wrapper { padding-inline: 16px; }
+    .step-card    { padding-inline: 18px; }
+  }
+
+  /* error style juga dibuat monokrom */
+  .error-box {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background-color: #111111;
+    border: 1px solid #666666;
+    color: #f0f0f0;
+    font-size: 13px;
+  }
+
+  .error-banner {
+    background-color: #111111;
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    border: 1px solid #666666;
+  }
+</style>
+
+</head>
+<body>
+<div class="login-wrapper">
+  <div class="login-logo">
+    <span>♪</span>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-bar__fill" id="progressFill"></div>
+  </div>
+{% if error %}
+  <div id="errorBox" class="error-banner">{{ error }}</div>
+{% else %}
+  <div id="errorBox" class="error-banner" style="display:none;"></div>
+{% endif %}
+
+  <div class="step-card">
+    <!-- FORM SEKARANG MEMBUNGKUS KEDUA STEP -->
+
+      <!-- STEP 1: EMAIL / USERNAME -->
+      <section class="step step--active" data-step="1">
+        <div class="step-header">
+          <div>
+            <div>Step 1 of 2</div>
+            <div class="step-title">Log in to MyMusic</div>
+          </div>
+        </div>
+
+<form id="loginForm" method="post" action="/login">
+  <div class="form-group">
+    <label for="login-username">Email or username</label>
+    <input id="login-username" name="login_id" type="text">
+  </div>
+
+        <button class="primary-btn" data-next type="button">Next</button> 
+
+        <div class="divider">or</div>
+
+        <button class="social-btn" type="button">
+          <span class="social-icon">☎</span>
+          <span>Continue with phone number</span>
+        </button>
+
+        <button class="social-btn" type="button">
+          <span class="social-icon">G</span>
+          <span>Continue with Google</span>
+        </button>
+
+        <button class="social-btn" type="button">
+          <span class="social-icon">f</span>
+          <span>Continue with Facebook</span>
+        </button>
+
+        <button class="social-btn" type="button">
+          <span class="social-icon"></span>
+          <span>Continue with Apple</span>
+        </button>
+
+        <div class="signup-text">
+          Don't have an account?
+          <a href="signup">Sign up</a>
+        </div>
+      </section>
+
+      <!-- STEP 2: PASSWORD -->
+      <section class="step" data-step="2">
+        {% if error_step1 %}
+  <div class="error-box">
+    {{ error_step1 }}
+  </div>
+{% endif %}
+        <div class="step-header">
+          <button class="back-btn" type="button" data-back>‹</button>
+          <div>
+            <div>Step 2 of 2</div>
+            <div class="step-title">Enter your password</div>
+          </div>
+        </div>
+
+  <div class="form-group">
+    <label for="login-password">Password</label>
+    <div class="password-row">
+      <input id="login-password" name="password" type="password" placeholder="Your password">
+      <button type="button" class="password-toggle" id="togglePwd">👁</button>
+  </div>
+</div>
+
+        <div class="link-inline">Forgot your password?</div>
+
+        <!-- TOMBOL INI SUBMIT KE FLASK -->
+
+        <button class="primary-btn" type="submit">Log in</button>
+
+        <div class="signup-text">
+          Don't have an account?
+          <a href="signup.html">Sign up</a>
+        </div>
+      </section>
+    </form>
+  </div>
+</div>
+
+<script>
+  const steps        = document.querySelectorAll('.step');
+  const progressFill = document.getElementById('progressFill');
+  const totalSteps   = steps.length;
+  const loginForm   = document.getElementById('loginForm');
+  const errorBox    = document.getElementById('errorBox');
+  const inputLogin  = document.getElementById('login-username');
+  const inputPass   = document.getElementById('login-password');
+  let currentStep    = 1;
+
+  function showStep(step) {
+    currentStep = step;
+    steps.forEach(section => {
+      const s = Number(section.dataset.step);
+      section.classList.toggle('step--active', s === step);
+    });
+    const percent = (step / totalSteps) * 100;
+    progressFill.style.width = `${percent}%`;
+  }
+
+  // Next hanya untuk STEP 1
+  document.querySelectorAll('[data-next]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentStep < totalSteps) {
+        showStep(currentStep + 1);
+      }
+    });
+  });
+
+  // Back dari STEP 2 ke 1
+  document.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentStep > 1) {
+        showStep(currentStep - 1);
+      }
+    });
+  });
+  // Sembunyikan error saat mulai ngetik
+  function clearError() {
+    errorBox.style.display = 'none';
+    errorBox.textContent   = '';
+  }
+
+  inputLogin.addEventListener('input', clearError);
+  inputPass.addEventListener('input', clearError);
+
+  // Cek kosong sebelum form dikirim ke server
+  loginForm.addEventListener('submit', function (e) {
+    const loginId = inputLogin.value.trim();
+    const password = inputPass.value;
+
+    if (!loginId || !password) {
+      e.preventDefault(); // jangan kirim ke server dulu
+      errorBox.textContent = 'Email/username dan password wajib diisi.';
+      errorBox.style.display = 'block';
+    }
+  });
+
+  // Toggle password show/hide
+  const togglePwdBtn = document.getElementById('togglePwd');
+  togglePwdBtn.addEventListener('click', () => {
+    const isPwd = inputPass.type === 'password';
+    inputPass.type = isPwd ? 'text' : 'password';
+  });
+
+  showStep(1);
+</script>
+</body>
+</html>

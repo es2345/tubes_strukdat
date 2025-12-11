@@ -1,0 +1,437 @@
+{% extends "base_shell.html" %}
+
+{% block title %}Search – MyMusic{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== SEARCH RESULTS PAGE ===== */
+
+  .search-page-root {
+    padding: 18px 22px 24px;
+  }
+
+  .search-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .search-header__title {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .search-header__subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .search-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .search-chip {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: none;
+    background-color: #2a2a2a;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .search-chip--active {
+    background-color: #fff;
+    color: #000;
+    font-weight: 600;
+  }
+
+  /* bagian atas: top result + songs */
+  .search-top-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .search-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .search-top-card {
+    background: linear-gradient(135deg, #3b1116, #121212);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .search-top-card__image {
+    width: 96px;
+    height: 96px;
+    border-radius: 8px;
+    background-color: #282828;
+    background-position: center;
+    background-size: cover;
+    flex-shrink: 0;
+  }
+
+  .search-top-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .search-top-card__label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+  }
+
+  .search-top-card__title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .search-top-card__subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* daftar lagu di kanan (top songs) */
+  /* daftar lagu di kanan (top songs) – style mirip playlist */
+  .search-song-list {
+    background-color: #181818;
+    border-radius: 12px;
+    padding: 8px 16px 8px;
+  }
+
+  .search-song-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .search-song-table thead th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    text-align: left;
+  }
+
+  .search-song-table thead th.time-col {
+    text-align: right;
+    width: 60px;
+  }
+
+  .search-song-table tbody td {
+    padding: 8px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .search-song-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .search-song-table td.index-col {
+    width: 32px;
+    text-align: right;
+    padding-right: 16px;
+    opacity: 0.7;
+  }
+
+  .search-song-table td.time-col {
+    text-align: right;
+    opacity: 0.8;
+  }
+
+  /* layout cell judul + cover, dipakai juga di playlist */
+  .song-cell-layout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .song-cell-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    background-color: #282828;
+    background-position: center;
+    background-size: cover;
+    flex-shrink: 0;
+  }
+
+
+  .song-cell-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .song-cell-title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .song-cell-artist {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+
+  /* Artists carousel style */
+  .search-artists-row {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .search-artist-card {
+    width: 120px;
+    flex-shrink: 0;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .search-artist-card__avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #282828;
+    background-position: center;
+    background-size: cover;
+    margin-bottom: 8px;
+  }
+
+  .search-artist-card__name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .search-artist-card__label {
+    font-size: 12px;
+    color: #fff;
+  }
+
+  /* Playlists & albums pakai grid card standar */
+  .search-card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .search-card-grid .card {
+    width: 180px;
+  }
+
+  @media (max-width: 900px) {
+    .search-top-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>
+
+<div class="content-wrapper search-page-root">
+
+  <!-- HEADER -->
+  <header class="search-header">
+    <h1 class="search-header__title">
+      Search results for “{{ query }}”
+    </h1>
+    <p class="search-header__subtitle">
+      Showing results across songs, artists, and playlists.
+    </p>
+
+    <div class="search-chip-row">
+      <button class="search-chip search-chip--active">All</button>
+    </div>
+  </header>
+
+  <!-- TOP RESULT + TOP SONGS -->
+  <section class="search-top-grid">
+    <div>
+      <h2 class="search-section-title">Top result</h2>
+
+      {% if top_song %}
+        {# top result = lagu #}
+        {% set cover = top_song.cover_url or url_for('static', filename='images/default_cover.jpg') %}
+        <a href="{{ url_for('song_page', song_id=top_song.id) }}"
+           class="search-top-card"
+           data-shell-link
+           style="text-decoration:none; color:inherit;">
+          <div class="search-top-card__image"
+               style="background-image:url('{{ cover }}');"></div>
+          <div class="search-top-card__meta">
+            <div class="search-top-card__label">Song</div>
+            <div class="search-top-card__title">{{ top_song.title }}</div>
+            <div class="search-top-card__subtitle">
+              {{ top_song.artist or 'Unknown artist' }}
+            </div>
+          </div>
+        </a>
+
+      {% elif featured_playlists and featured_playlists|length > 0 %}
+        {# fallback: pakai playlist pertama #}
+        {% set pl = featured_playlists[0] %}
+        {% set cover = pl.cover_url or url_for('serve_cover', filename='default_cover.png') %}
+        <a href="{{ url_for('playlist_page', playlist_name=pl.name) }}"
+           class="search-top-card"
+           data-shell-link
+           style="text-decoration:none; color:inherit;">
+          <div class="search-top-card__image"
+               style="background-image:url('{{ cover }}');"></div>
+          <div class="search-top-card__meta">
+            <div class="search-top-card__label">Playlist</div>
+            <div class="search-top-card__title">{{ pl.name }}</div>
+            <div class="search-top-card__subtitle">
+              Playlist • {{ pl.owner_name or 'User' }}
+            </div>
+          </div>
+        </a>
+      {% else %}
+        <div class="search-top-card">
+          <div class="search-top-card__meta">
+            <div class="search-top-card__label">No result</div>
+            <div class="search-top-card__title">Nothing found</div>
+            <div class="search-top-card__subtitle">
+              Try a different keyword.
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+        <div>
+      <h2 class="search-section-title">Songs</h2>
+      <div class="search-song-list">
+        {% if song_results %}
+          <table class="search-song-table">
+            <thead>
+              <tr>
+                <th style="width:40px;">#</th>
+                <th>Title</th>
+                <th class="time-col">⏱</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for song in song_results %}
+                {% set cover = song.cover_url or url_for('serve_cover', filename='default_cover.png') %}
+                <tr>
+                  <td class="index-col">{{ loop.index }}</td>
+                  <td>
+  <a href="{{ url_for('song_page', song_id=song.id) }}"
+     data-shell-link
+     style="text-decoration:none; color:inherit;">
+
+    <div class="song-cell-layout">
+      <div class="song-cell-cover"
+           style="background-image:url('{{ song.cover_url or url_for('serve_cover', filename='default_cover.png') }}');">
+      </div>
+
+      <div class="song-cell-main">
+        <span class="song-cell-title">{{ song.title }}</span>
+        <span class="song-cell-artist">
+          {{ song.artist or 'Unknown artist' }}
+          {% if song.album %} • {{ song.album }}{% endif %}
+        </span>
+      </div>
+    </div>
+  </a>
+</td>
+
+                  <td class="time-col">
+                    {% if song.duration_ms %}
+                      {% set mins = (song.duration_ms // 60000) %}
+                      {% set secs = (song.duration_ms // 1000) % 60 %}
+                      {{ mins }}:{% if secs < 10 %}0{% endif %}{{ secs }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="section__empty">No songs found.</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ARTISTS -->
+<section class="section">
+  <div class="section__header">
+    <h2 class="section__title">Artists</h2>
+  </div>
+
+  {% if artist_results %}
+    <div class="search-artists-row">
+      {% for artist in artist_results %}
+        {% set cover = artist.avatar_url or url_for('static', filename='images/default_artist.jpg') %}
+        <a
+          href="{{ url_for('artist_profile_page', artist_name=artist.name) }}"
+          class="search-artist-card"
+          data-shell-link
+        >
+          <div class="search-artist-card__avatar"
+               style="background-image:url('{{ cover }}');"></div>
+          <div class="search-artist-card__name">
+            {{ artist.name }}
+          </div>
+          <div class="search-artist-card__label">Artist</div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="section__empty">No artists found.</p>
+  {% endif %}
+</section>
+
+
+
+
+
+    {% if playlist_results %}
+      <div class="search-card-grid">
+        {% for pl in playlist_results %}
+          {% set cover = pl.cover_url or url_for('serve_cover', filename='default_cover.png') %}
+          <a href="{{ url_for('playlist_page', playlist_name=pl.name) }}"
+             data-shell-link
+             class="card"
+             style="text-decoration:none; color:inherit;">
+            <div class="card__image"
+                 style="background-image:url('{{ cover }}');"></div>
+            <div class="card__title">{{ pl.name }}</div>
+            <div class="card__subtitle">
+              Playlist • {{ pl.owner_name or 'User' }}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="section__empty">No playlists found.</p>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}
+
+{% block body_extra %}
+{# kalau nanti mau JS khusus search, taruh di sini #}
+{% endblock %}

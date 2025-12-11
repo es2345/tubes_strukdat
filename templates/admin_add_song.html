@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MyMusic – Admin Add Song</title>
+  <style>
+    :root {
+      --bg-main: #121212;
+      --bg-page: #000000;
+      --bg-card: #181818;
+      --bg-panel: #121212;
+      --bg-player: #181818;
+      --accent: #1db954;
+      --text-main: #ffffff;
+      --text-muted: #b3b3b3;
+      --border-subtle: rgba(255,255,255,0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI";
+      background: var(--bg-page);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) 80px;
+      height: 100vh;
+    }
+
+    /* ===== SIDEBAR (disamakan dengan admin.html) ===== */
+    .sidebar {
+      grid-row: 1 / 3;
+      background-color: var(--bg-panel);
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      border-right: 1px solid #000;
+    }
+
+    .sidebar__logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-inline: 2px;
+    }
+
+    .sidebar__logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .sidebar__logo-text {
+      font-weight: 700;
+      font-size: 17px;
+    }
+
+    .sidebar__section-title {
+      margin-top: 8px;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .sidebar__nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar__item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s, transform 0.08s;
+    }
+
+    .sidebar__item:hover {
+      background-color: #1f1f1f;
+      color: var(--text-main);
+    }
+
+    .sidebar__item--active {
+      background-color: #1db95422;
+      color: var(--text-main);
+    }
+
+    .sidebar__item-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background-color: #1f1f1f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .sidebar__footer {
+      margin-top: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sidebar__footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 11px;
+    }
+
+    .sidebar__footer a:hover {
+      text-decoration: underline;
+    }
+
+    .sidebar__logout {
+      margin-top: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-main);
+      background-color: transparent;
+    }
+
+    .sidebar__logout:hover {
+      background-color: #1f1f1f;
+    }
+
+    /* MAIN */
+    .main {
+      background: var(--bg-main);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 60px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 13px;
+    }
+
+    .topbar__left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: #181818;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .topbar__title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .admin-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #18181b;
+      color: var(--text-muted);
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #f97316;
+      color: #000;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+        .user-menu {
+      position: relative;
+    }
+
+    .user-menu__dropdown {
+      position: absolute;
+      right: 0;
+      top: 110%;
+      background: #18181b;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      min-width: 180px;
+      padding: 6px 0;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 50;
+    }
+
+    .user-menu__dropdown--open {
+      display: block;
+    }
+
+    .user-menu__item {
+      width: 100%;
+      text-align: left;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--text-main);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .user-menu__item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .user-menu__item--label {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 4px;
+      cursor: default;
+    }
+
+    .user-menu__email {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .user-menu__item--danger {
+      color: #f97373;
+    }
+
+    .user-menu__item--danger:hover {
+      background: #451a1a;
+    }
+
+    .content {
+      flex: 1;
+      padding: 22px 28px;
+      background: radial-gradient(circle at top, #020617, #020617 65%);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .content-inner {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  /* ini yang penting */
+  width: 600px;        /* samain dengan form */
+  max-width: 100%;
+  margin: 0 auto 6px;  /* center di tengah konten */
+  text-align: center;  /* biar judul & teks di tengah */
+}
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* FORM LAYOUT */
+.form-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 600px);
+  justify-content: center;   /* bikin column-nya di tengah */
+  gap: 20px;
+  align-items: flex-start;
+  margin-top: 16px;
+}
+
+.form-card {
+  background: rgba(0,0,0,0.45);
+  border-radius: 18px;
+  border: 1px solid var(--border-subtle);
+  padding: 20px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  width: 100%;
+  max-width: 600px; /* match sama grid-template-columns */
+}
+
+    .form-card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    input, select, textarea {
+      background: #0b0b0b;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+      max-height: 150px;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* COVER / SUMMARY */
+    .side-card {
+      background: rgba(0,0,0,0.45);
+      border-radius: 18px;
+      border: 1px solid var(--border-subtle);
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cover-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.7);
+      margin-bottom: 6px;
+    }
+
+    .side-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .side-text {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 4px 0;
+    }
+
+    /* ACTIONS */
+    .form-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 16px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.05);
+    }
+
+    .btn-secondary:hover {
+      background: #1f2933;
+    }
+
+    /* PLAYER (tetap seperti sebelumnya) */
+    .player {
+      grid-column: 1 / 3;
+      background: var(--bg-player);
+      border-top: 1px solid #000;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .player__left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .player__cover {
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+    }
+
+    .player__text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .player__title {
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .player__center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .player__buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .player__btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--text-muted);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .player__btn--primary {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    .player__progress {
+      width: 50%;
+      height: 4px;
+      border-radius: 999px;
+      background: #333;
+      overflow: hidden;
+    }
+
+    .player__progress-fill {
+      width: 35%;
+      height: 100%;
+      background: #fff;
+    }
+
+    .player__right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .player__volume {
+      width: 90px;
+      height: 4px;
+      border-radius: 999px;
+      background: #333;
+      overflow: hidden;
+    }
+
+    .player__volume-fill {
+      width: 60%;
+      height: 100%;
+      background: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .content {
+        padding: 18px 16px;
+      }
+
+      .form-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      /* sama seperti admin.html: sidebar mengecil */
+      .app {
+        grid-template-columns: 70px minmax(0, 1fr);
+      }
+
+      .sidebar__logo-text,
+      .sidebar__section-title {
+        display: none;
+      }
+
+      .sidebar__item span:last-child {
+        display: none;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .player__center {
+        display: none;
+      }
+
+      .player__right {
+        margin-left: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar__logo">
+    <div class="sidebar__logo-icon">♪</div>
+    <div class="sidebar__logo-text">MyMusic Admin</div>
+  </div>
+
+  <div>
+    <div class="sidebar__section-title">Main</div>
+   <nav class="sidebar__nav">
+ <div class="sidebar__item"
+     onclick="window.location.href='{{ url_for('admin_page') }}'">
+  <div class="sidebar__item-icon">📊</div>
+  <span>Dashboard</span>
+</div>
+<div class="sidebar__item sidebar__item--active"
+     onclick="window.location.href='{{ url_for('admin_view_all_song') }}'">
+  <div class="sidebar__item-icon">🎵</div>
+  <span>Playlists</span>
+</div>
+
+</nav>
+
+
+
+    <nav class="sidebar__nav">
+      <div class="sidebar__item">
+
+      </div>
+  </div>
+
+  <div class="sidebar__footer">
+    <span style="font-size:11px;">v0.1 • Demo panel</span>
+  </div>
+</aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar__left">
+        <button class="back-btn"
+                onclick="window.location.href='{{ url_for('admin_view_all_song') }}'">
+          ←
+        </button>
+        <span class="topbar__title">Tambah lagu baru</span>
+        <span class="admin-badge">Admin</span>
+      </div>
+
+      <div class="user-menu">
+        <button class="avatar" id="admin-avatar-btn">
+          {{ (current_user.display_name or 'A')[0]|upper }}
+        </button>
+        <div class="user-menu__dropdown" id="admin-menu-dropdown">
+          <div class="user-menu__item user-menu__item--label">
+            {{ current_user.display_name or 'Admin' }}
+            <span class="user-menu__email">{{ current_user.email }}</span>
+          </div>
+          <button type="button" class="user-menu__item">
+            Profile
+          </button>
+          <button type="button" class="user-menu__item">
+            Settings
+          </button>
+          <button type="button"
+                  class="user-menu__item user-menu__item--danger"
+                  onclick="window.location.href='{{ url_for('logout') }}'">
+            Log out
+          </button>
+        </div>
+      </div>
+    </header>
+
+      <div class="content">
+      <div class="content-inner">
+        <div class="page-header">
+          <h1 class="page-title">Tambah lagu baru</h1>
+          <p class="page-subtitle">
+            Isi data lagu sesuai dengan field yang disediakan. Data ini akan masuk ke library pemutar musik.
+          </p>
+        </div>
+
+                <section class="form-layout">
+          <!-- FORM UTAMA -->
+          <form class="form-card"
+                method="POST"
+                enctype="multipart/form-data"
+                action="{{ url_for('admin_add_song') }}">
+
+            <h2 class="form-card-title">Song information</h2>
+
+            <!-- ROW 1: ID + TITLE -->
+            <div class="form-row">
+              <div class="form-group">
+  <label for="song-id">Song ID</label>
+  <input id="song-id"
+         type="text"
+         value="{{ next_song_code }}"
+         readonly />
+  <span class="hint">
+    Dibuat otomatis dari urutan lagu di library (tidak perlu diubah).
+  </span>
+</div>
+
+              <div class="form-group">
+                <label for="song-title">Title</label>
+                <input id="song-title" name="title" type="text" placeholder="Judul lagu" />
+              </div>
+            </div>
+
+            <!-- ROW 2: ARTIST + YEAR -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="song-artist">Artist</label>
+                <input id="song-artist" type="text" name="artist"
+                       placeholder="Nama penyanyi / band" />
+              </div>
+
+              <div class="form-group">
+                <label for="song-year">Year</label>
+                <input id="song-year" name="year" type="number"
+                       min="1900" max="2100" placeholder="2025" />
+              </div>
+
+            </div>
+
+            <!-- ROW 3: ALBUM + GENRE -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="song-album">Album</label>
+                <input id="song-album" type="text" name="album"
+                       placeholder="Nama album (opsional)" />
+              </div>
+
+              <div class="form-group">
+                <label for="song-genre">Genre</label>
+                <select id="song-genre" name="genre">
+                  <option value="">Pilih genre</option>
+                  <option>Pop</option>
+                  <option>Rock</option>
+                  <option>EDM</option>
+                  <option>Hip-Hop</option>
+                  <option>Jazz</option>
+                  <option>Classical</option>
+                  <option>Metal</option>
+                  <option>Other</option>
+                </select>
+                <span class="hint">Genre membantu filter di user side.</span>
+              </div>
+            </div>
+
+            <!-- ROW 4: COVER URL -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cover-url">Cover image URL (opsional)</label>
+                <input id="cover-url" name="cover_url" type="text"
+                       placeholder="https://example.com/cover.jpg" />
+                <span class="hint">
+                  Kalau tidak upload file, kamu bisa pakai URL gambar di sini.
+                </span>
+              </div>
+            </div>
+
+            <!-- ROW 5: COVER FILE + AUDIO FILE -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cover-file">Cover image file (.jpg, .png, .gif)</label>
+                <input id="cover-file" name="cover_file" type="file"
+                       accept=".jpg,.jpeg,.png,.gif" />
+                <span class="hint">
+                  Jika diisi, backend akan memakai file ini sebagai cover lagu & playlist.
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label for="song-file-upload">Audio file (.mp3, .wav, .ogg, .m4a)</label>
+                <input id="song-file-upload" name="audio_file" type="file"
+                       accept=".mp3,.wav,.ogg,.m4a" />
+                <span class="hint">
+                  Upload file dari komputer. Durasi akan dibaca otomatis dari file.
+                </span>
+              </div>
+            </div>
+
+            <!-- DESCRIPTION (FULL WIDTH) -->
+            <div class="form-group">
+              <label for="song-desc">Description / notes</label>
+              <textarea id="song-desc" name="description"
+                        placeholder="Catatan tambahan tentang lagu (opsional)"></textarea>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="form-actions">
+              <button type="button" class="btn-secondary"
+                      onclick="window.location.href='{{ url_for('admin_page') }}'">
+                Cancel
+              </button>
+              <button type="submit" class="btn-primary">
+                Save Song
+              </button>
+            </div>
+          </form>
+
+          <!-- SIDEBAR KANAN (PREVIEW / INFO) -->
+          <!-- <aside class="side-card">
+            <div>
+              <div class="cover-preview">
+                Cover Preview
+              </div>
+              <p class="side-title">Cover & metadata</p>
+              <p class="side-text">
+                Di tahap UI ini, cover hanya placeholder. Nanti backend bisa mengganti
+                dengan gambar asli berdasarkan album atau file yang diupload.
+              </p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div>
+              <p class="side-title">Tips pengisian</p>
+              <p class="side-text">
+                • Pastikan <strong>Title</strong> dan <strong>Artist</strong> terisi.<br/>
+                • <strong>Song ID</strong> boleh dikosongkan jika ingin dibuat otomatis.<br/>
+                • <strong>Genre</strong> dan <strong>Year</strong> membantu pencarian & filter di user side.
+              </p>
+            </div>
+          </aside> -->
+        </section>
+      </div>
+    </div>
+
+  </main>
+
+
+</div>
+</body>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const avatarBtn = document.getElementById('admin-avatar-btn');
+    const menu = document.getElementById('admin-menu-dropdown');
+
+    if (!avatarBtn || !menu) return;
+
+    avatarBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      menu.classList.toggle('user-menu__dropdown--open');
+    });
+
+    document.addEventListener('click', function () {
+      menu.classList.remove('user-menu__dropdown--open');
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        menu.classList.remove('user-menu__dropdown--open');
+      }
+    });
+  });
+</script>
+
+</html>

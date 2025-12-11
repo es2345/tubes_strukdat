@@ -1,0 +1,362 @@
+{% extends "base_shell.html" %}
+
+{% block title %}{{ folder.name }} – Folder – MyMusic{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== FOLDER PAGE – layout copy dari playlist ===== */
+
+  .song-detail-page {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(
+      circle at top left,
+      #b32627 0,
+      #121212 45%,
+      #000 100%
+    );
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .playlist-scroll {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #121212;
+  }
+
+  .playlist-header-wrapper {
+    position: relative;
+    padding: 32px 40px 28px;
+    background: #121212;
+    overflow: hidden;
+  }
+
+  .playlist-header-bg {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px);
+    transform: scale(1.1);
+    opacity: 0.9;
+    z-index: 0;
+  }
+
+  .playlist-header-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.35), #121212 80%);
+    z-index: 1;
+  }
+
+  .playlist-header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .playlist-cover {
+    width: 232px;
+    height: 232px;
+    border-radius: 4px;
+    background: #282828;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* khusus folder: icon di tengah */
+  .folder-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    color: var(--text-muted);
+  }
+
+  .playlist-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .playlist-meta-top {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .playlist-title {
+    font-size: clamp(32px, 6vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .playlist-meta-bottom {
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .playlist-meta-bottom span.dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+    display: inline-block;
+  }
+
+  .detail-controls-wrapper {
+    background-color: #181818;
+    border-bottom: 1px solid #000;
+  }
+
+  .detail-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 40px 10px;
+  }
+
+  .detail-view-toggle {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .playlist-content-wrapper {
+    background: linear-gradient(to bottom, #121212, #000);
+    padding: 24px 40px 40px;
+  }
+
+  .playlist-content-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .playlist-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .playlist-table thead th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    text-align: left;
+  }
+
+  .playlist-table thead th.time-col {
+    text-align: right;
+    width: 60px;
+  }
+
+  .playlist-table tbody td {
+    padding: 12px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .playlist-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .playlist-table td.index-col {
+    width: 32px;
+    text-align: right;
+    padding-right: 16px;
+    opacity: 0.7;
+  }
+
+  .playlist-table td.time-col {
+    text-align: right;
+    opacity: 0.8;
+  }
+
+  .song-cell-layout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .song-cell-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    background-color: #333;
+    flex-shrink: 0;
+  }
+
+  .song-cell-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .song-cell-title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .song-cell-artist {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  .playlist-empty {
+    margin-top: 24px;
+    font-size: 16px;
+    color: #fff;
+  }
+
+  .playlist-empty-sub {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .playlist-header-wrapper,
+    .detail-controls,
+    .playlist-content-wrapper {
+      padding-inline: 16px;
+    }
+
+    .playlist-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .playlist-cover {
+      width: 180px;
+      height: 180px;
+    }
+  }
+</style>
+
+<div class="content-wrapper">
+  <div class="song-detail-page">
+    <div class="playlist-scroll">
+
+      <!-- HEADER FOLDER (mirip header playlist) -->
+      <div class="playlist-header-wrapper">
+        <div
+          class="playlist-header-bg"
+          style="background-image: radial-gradient(circle at top left,
+                     rgba(255,255,255,0.06),
+                     rgba(0,0,0,0.9));">
+        </div>
+
+        <div class="playlist-header">
+          <div class="playlist-cover folder-cover">
+            📁
+          </div>
+
+          <div class="playlist-meta">
+            <div class="playlist-meta-top">FOLDER</div>
+            <h1 class="playlist-title">{{ folder.name }}</h1>
+
+            <div class="playlist-meta-bottom">
+              <span>By {{ current_user.display_name }}</span>
+              <span class="dot"></span>
+              <span>{{ playlists|length }} playlists</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTROL BAR (kosong, cuma biar layout sama) -->
+      <div class="detail-controls-wrapper">
+        <div class="detail-controls">
+          <div class="detail-view-toggle">
+            <span>Playlists</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ISI FOLDER – tabel mirip playlist -->
+      <div class="playlist-content-wrapper">
+        <div class="playlist-content-inner">
+          {% if playlists %}
+          <table class="playlist-table">
+            <thead>
+              <tr>
+                <th style="width:40px;">#</th>
+                <th>Playlist</th>
+                <th class="actions-col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pl in playlists %}
+              <tr>
+                <td class="index-col">{{ loop.index }}</td>
+                <td>
+                  <a href="{{ url_for('playlist_page', playlist_name=pl.name) }}"
+                     data-shell-link
+                     style="text-decoration:none; color:inherit;">
+                    <div class="song-cell-layout">
+                      <div
+                        class="song-cell-cover"
+                        style="background-image:url('{{ pl.cover_url or url_for('serve_cover', filename='default_cover.png') }}');">
+                      </div>
+                      <div class="song-cell-main">
+                        <span class="song-cell-title">{{ pl.name }}</span>
+                        <span class="song-cell-artist">
+                          Playlist • {{ current_user.display_name }}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                </td>
+                <td class="time-col">
+                  {% if pl.song_count is defined %}
+                    {{ pl.song_count }} songs
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td class="actions-col">
+                  {# slot kosong kalau nanti mau tambah tombol ... #}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+            <div class="playlist-empty">
+              Folder ini masih kosong
+            </div>
+            <div class="playlist-empty-sub">
+              Tambahkan playlist ke folder ini dari halaman playlist.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div><!-- /playlist-scroll -->
+  </div><!-- /song-detail-page -->
+</div><!-- /content-wrapper -->
+
+{% endblock %}

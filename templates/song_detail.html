@@ -1,0 +1,676 @@
+{% extends "base_shell.html" %}
+
+{% block title %}MyMusic – {{ song.title }}{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== SONG DETAIL LAYOUT (spesifik halaman ini) ===== */
+
+  /* default warna kalau JS belum sempat ambil dari cover */
+  :root {
+    --bg-header-top: #3f3f3f;
+    --bg-header-bottom: #181818;
+  }
+
+  .song-detail-page {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(
+      circle at top left,
+      #b32627 0,
+      #121212 45%,
+      #000 100%
+    );
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .song-detail-header {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    padding: 32px 40px 28px;
+    background: linear-gradient(
+      180deg,
+      var(--bg-header-top),
+      var(--bg-header-bottom) 55%,
+      transparent 100%
+    );
+    overflow: hidden;
+  }
+
+  /* blur background dari cover */
+  .song-detail-header-bg {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px);
+    transform: scale(1.1);
+    opacity: 0.9;
+    z-index: 0;
+  }
+
+  /* overlay gelap supaya teks kebaca */
+  .song-detail-header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.35), #121212 80%);
+    z-index: 1;
+  }
+
+  .song-detail-header > .song-detail-cover,
+  .song-detail-header > .song-detail-info {
+    position: relative;
+    z-index: 2;
+  }
+
+  .song-detail-cover {
+    width: 230px;
+    height: 230px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 60px rgba(0, 0, 0, 0.7);
+    flex-shrink: 0;
+  }
+
+  .song-detail-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .song-detail-badge {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.8;
+  }
+
+  .song-detail-title {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.05;
+    margin: 4px 0;
+    word-break: break-word;
+  }
+
+  .song-detail-meta {
+    font-size: 14px;
+    opacity: 0.9;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .song-detail-meta span.dot::before {
+    content: "•";
+    margin: 0 4px;
+    opacity: 0.8;
+  }
+
+  .song-detail-body {
+    flex: 1;
+    padding: 24px 40px 48px;
+    background: linear-gradient(to bottom, #121212, #000);
+  }
+
+  .song-detail-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    position: relative; /* buat menu add-to-playlist */
+  }
+
+  .song-detail-play {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+
+  .song-detail-play:active {
+    transform: scale(0.97);
+  }
+
+  .song-detail-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: transparent;
+    color: #fff;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.8;
+  }
+
+  .song-detail-icon-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  /* MENU ADD TO PLAYLIST */
+  .add-to-playlist-menu {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    min-width: 220px;
+    background-color: #282828;
+    border-radius: 8px;
+    padding: 8px 0;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+    font-size: 13px;
+    display: none;
+    z-index: 30;
+  }
+
+  .add-to-playlist-menu--open {
+    display: block;
+  }
+
+  .add-to-playlist-header {
+    padding: 6px 14px 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+  }
+
+  .add-to-playlist-item {
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .add-to-playlist-item button {
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .add-to-playlist-item:hover {
+    background-color: #333333;
+  }
+
+  .add-to-playlist-empty {
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* TABEL SINGLE TRACK */
+  .song-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .song-detail-table thead th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: left;
+  }
+
+  .song-detail-table thead th.time-col {
+    text-align: right;
+    width: 60px;
+  }
+
+  .song-detail-table tbody td {
+    padding: 12px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .song-detail-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .song-detail-table td.index-col {
+    width: 32px;
+    text-align: right;
+    padding-right: 16px;
+    opacity: 0.7;
+  }
+
+  .song-detail-table td.time-col {
+    text-align: right;
+    opacity: 0.8;
+  }
+
+  .song-cell-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .song-cell-title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .song-cell-artist {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  /* MORE BY ARTIST */
+  .more-section {
+    margin-top: 32px;
+  }
+
+  .more-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+.more-grid {
+  display: grid;
+  /* lebar card fix kayak card di home, nggak ngembang 1fr lagi */
+  grid-template-columns: repeat(auto-fit, 160px);
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+.more-card {
+  background: #181818;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background 0.15s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+
+
+  .more-card:hover {
+    background: #262626;
+    transform: translateY(-3px);
+  }
+
+.more-cover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+  .more-name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    color: #fff;
+    
+  }
+
+  .more-artist {
+    font-size: 12px;
+    opacity: 0.7;
+    color: #fff;
+  }
+
+  @media (max-width: 768px) {
+    .song-detail-header {
+      flex-direction: column;
+      align-items: flex-start;
+      padding-inline: 20px;
+    }
+
+    .song-detail-cover {
+      width: 200px;
+      height: 200px;
+    }
+
+    .song-detail-body {
+      padding-inline: 20px;
+    }
+  }
+</style>
+
+
+
+  <!-- BODY -->
+  <div class="content-wrapper">
+    <div class="song-detail-page">
+      <!-- HEADER -->
+      <section class="song-detail-header">
+        <!-- blur background dari cover -->
+        <div
+          class="song-detail-header-bg"
+          style="background-image:url('{{ song.cover_url or url_for('static', filename='images/default_cover.jpg') }}');">
+        </div>
+
+        <img
+          src="{{ song.cover_url or url_for('static', filename='images/default_cover.jpg') }}"
+          alt="{{ song.title }} cover"
+          class="song-detail-cover"
+        />
+
+        <div class="song-detail-info">
+          <div class="song-detail-badge">Single</div>
+          <h1 class="song-detail-title">{{ song.title }}</h1>
+
+          <div class="song-detail-meta">
+            <span>{{ song.artist or 'Unknown artist' }}</span>
+            {% if song.year %}
+              <span class="dot"></span>
+              <span>{{ song.year }}</span>
+            {% endif %}
+            <span class="dot"></span>
+            <span>
+              1 song,
+              {{ minutes }}:{% if seconds < 10 %}0{% endif %}{{ seconds }}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- BODY -->
+      <section class="song-detail-body">
+        <div class="song-detail-controls">
+          <button class="song-detail-play" id="songDetailPlayBtn">▶</button>
+
+          <!-- tombol Add to playlist -->
+          <button class="song-detail-icon-btn"
+                  id="btnAddToPlaylist"
+                  title="Add to playlist">
+            +
+          </button>
+
+          <button class="song-detail-icon-btn">↓</button>
+
+          <!-- MENU ADD TO PLAYLIST -->
+          <div class="add-to-playlist-menu" id="addToPlaylistMenu">
+            <div class="add-to-playlist-header">Add to playlist</div>
+
+            {% if root_playlists or folders %}
+              {% for pl in root_playlists %}
+                <div class="add-to-playlist-item">
+  <form method="post"
+        action="{{ url_for('add_song_to_playlist',
+                           playlist_id=pl.id,
+                           song_id=song.id) }}"
+        style="width:100%;">
+    <button type="submit">{{ pl.name }}</button>
+  </form>
+</div>
+
+              {% endfor %}
+
+              {% for folder in folders %}
+                {% for pl in folder.playlists %}
+                  <div class="add-to-playlist-item">
+                    <form method="post"
+                          action="{{ url_for('add_song_to_playlist',
+                                             playlist_id=pl.id,
+                                             song_id=song.id) }}"
+                          style="width:100%;">
+                      <button type="submit">{{ pl.name }}</button>
+                    </form>
+                  </div>
+                {% endfor %}
+              {% endfor %}
+            {% else %}
+              <div class="add-to-playlist-empty">
+                You don't have any playlists yet.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- TABEL TRACK -->
+        <table class="song-detail-table">
+          <thead>
+            <tr>
+              <th style="width:40px;">#</th>
+              <th>Title</th>
+              <th class="time-col">⏱</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="index-col">1</td>
+              <td>
+                <div class="song-cell-main">
+                  <span class="song-cell-title">{{ song.title }}</span>
+                  <span class="song-cell-artist">{{ song.artist or 'Unknown artist' }}</span>
+                </div>
+              </td>
+              <td class="time-col">
+                {{ minutes }}:{% if seconds < 10 %}0{% endif %}{{ seconds }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {% if more_songs %}
+          <div class="more-section">
+            <div class="more-title">More by {{ song.artist }}</div>
+            <div class="more-grid">
+              {% for s in more_songs %}
+                <a href="{{ url_for('song_page', song_id=s.id) }}" data-shell-link>
+              <div class="more-card">
+                    <img
+                      src="{{ s.cover_url or url_for('static', filename='images/default_cover.jpg') }}"
+                      alt="{{ s.title }} cover"
+                      class="more-cover"
+                    />
+                    <div class="more-name">{{ s.title }}</div>
+                    <div class="more-artist">{{ s.artist }}</div>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block body_extra %}
+<script data-page-init>
+  // ==== TRACK OBJECT UNTUK GLOBAL AppPlayer ====
+  const currentTrack = {
+    id: {{ song.id }},
+    title: "{{ song.title|e }}",
+    artist: "{{ (song.artist or 'Unknown artist')|e }}",
+    audio_url: "{{ song.audio_url }}",
+    cover_url: "{{ song.cover_url or url_for('static', filename='images/default_cover.jpg') }}"
+  };
+
+  const detailPlayBtn = document.getElementById('songDetailPlayBtn');
+
+
+// Cari state player dari key apa pun yang prefix-nya "mymusic_player_state_v1"
+function getPlayerStateFromAnyKey() {
+  const PREFIX = 'mymusic_player_state_v1';
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(PREFIX)) {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        console.warn('Gagal parse player state:', e);
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+function isSameAsCurrentTrack() {
+  const st = getPlayerStateFromAnyKey();
+  if (!st || !Array.isArray(st.tracks) || st.currentIndex == null) {
+    return false;
+  }
+
+  const t = st.tracks[st.currentIndex];
+  if (!t) return false;
+
+  // pake String() biar aman kalau satu pakai number, satu string
+  return String(t.id) === String(currentTrack.id);
+}
+
+
+  function syncDetailPlayIcon() {
+    const audioEl = document.getElementById('globalAudio');
+    if (!audioEl || !detailPlayBtn) return;
+
+    if (!isSameAsCurrentTrack() || audioEl.paused) {
+      detailPlayBtn.textContent = '▶';
+    } else {
+      detailPlayBtn.textContent = '⏸';
+    }
+  }
+
+  if (detailPlayBtn && window.AppPlayer) {
+    detailPlayBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      const audioEl = document.getElementById('globalAudio');
+
+      if (isSameAsCurrentTrack() && audioEl && !audioEl.paused) {
+        AppPlayer.togglePlay();
+      } else {
+        AppPlayer.playSingle(currentTrack);
+      }
+    });
+
+    const audioEl = document.getElementById('globalAudio');
+    if (audioEl) {
+      audioEl.addEventListener('play',  syncDetailPlayIcon);
+      audioEl.addEventListener('pause', syncDetailPlayIcon);
+      audioEl.addEventListener('ended', syncDetailPlayIcon);
+      syncDetailPlayIcon();
+    }
+  }
+
+  // ==== DYNAMIC HEADER COLOR DARI COVER ====
+  function applySongHeaderColor() {
+    const img = document.querySelector('.song-detail-cover');
+    if (!img) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 1;
+    canvas.height = 1;
+
+    function setColorFromImage() {
+      try {
+        ctx.drawImage(img, 0, 0, 1, 1);
+        const data = ctx.getImageData(0, 0, 1, 1).data;
+        const r = data[0];
+        const g = data[1];
+        const b = data[2];
+
+        const topColor = `rgb(${r}, ${g}, ${b})`;
+        const bottomColor = `rgb(${Math.floor(r * 0.35)}, ${Math.floor(g * 0.35)}, ${Math.floor(b * 0.35)})`;
+
+        const root = document.documentElement;
+        root.style.setProperty('--bg-header-top', topColor);
+        root.style.setProperty('--bg-header-bottom', bottomColor);
+      } catch (e) {
+        console.warn('Gagal ambil warna dari cover song:', e);
+      }
+    }
+
+    if (img.complete) {
+      setColorFromImage();
+    } else {
+      img.addEventListener('load', setColorFromImage);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', applySongHeaderColor);
+
+  // ==== ADD TO PLAYLIST MENU ====
+  const btnAddToPlaylist = document.getElementById('btnAddToPlaylist');
+  const addToPlaylistMenu = document.getElementById('addToPlaylistMenu');
+
+  if (btnAddToPlaylist && addToPlaylistMenu) {
+    btnAddToPlaylist.addEventListener('click', function (e) {
+      e.stopPropagation();
+      addToPlaylistMenu.classList.toggle('add-to-playlist-menu--open');
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!addToPlaylistMenu.contains(e.target) && e.target !== btnAddToPlaylist) {
+        addToPlaylistMenu.classList.remove('add-to-playlist-menu--open');
+      }
+    });
+  }
+
+
+
+  // === AJAX: add to playlist dari song_detail (tanpa reload) ===
+  (function setupSongDetailAddAjax() {
+    const menu = document.getElementById("addToPlaylistMenu");
+    if (!menu) return;
+
+    menu.addEventListener("submit", async function (e) {
+      const form = e.target;
+      if (form.tagName !== "FORM") return;
+
+      e.preventDefault();
+
+      const btn = form.querySelector("button[type='submit']");
+      const originalText = btn ? btn.textContent : "";
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Adding...";
+      }
+
+      try {
+        const resp = await fetch(form.action, {
+          method: "POST",
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.success) throw new Error("add failed");
+
+        if (btn) {
+          btn.textContent = "Added ✓";
+        }
+      } catch (err) {
+        console.error("[song-detail] add-to-playlist ajax error", err);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText || "Error";
+        }
+      }
+    });
+  })();
+</script>
+{% endblock %}

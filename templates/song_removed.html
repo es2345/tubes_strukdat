@@ -1,0 +1,157 @@
+{% extends "base_shell.html" %}
+
+{% block title %}Lagu tidak tersedia – MyMusic{% endblock %}
+
+{% block content %}
+<style>
+.sr-root {
+  padding: 40px 40px 32px;
+  display: flex;
+  justify-content: center;
+}
+
+
+  .sr-card {
+    max-width: 520px;
+    padding: 24px 24px 22px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #000000, #111111);
+    border: 1px solid #ffffff18;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .sr-icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sr-icon {
+    font-size: 28px;
+    filter: grayscale(1);
+  }
+
+  .sr-text-main {
+    flex: 1;
+  }
+
+  .sr-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px;
+  }
+
+  .sr-subtitle {
+    font-size: 14px;
+    font-weight: 500;
+    color: #f5f5f5;
+    margin: 0 0 6px;
+  }
+
+  .sr-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #bfbfbf;
+    margin: 0 0 18px;
+  }
+
+  .sr-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .sr-btn-primary,
+  .sr-btn-ghost {
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+      transform 0.08s ease;
+  }
+
+  .sr-btn-primary {
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid #ffffff;
+  }
+
+  .sr-btn-primary:hover {
+    background: #e6e6e6;
+    border-color: #e6e6e6;
+    transform: translateY(-1px);
+  }
+
+  .sr-btn-ghost {
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid #ffffff55;
+  }
+
+  .sr-btn-ghost:hover {
+    border-color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px) {
+    .sr-root {
+      padding: 24px 16px 18px;
+    }
+    .sr-card {
+      padding: 18px 16px 18px;
+      gap: 14px;
+    }
+  }
+</style>
+
+<div class="sr-root">
+  <section class="section">
+    <div class="section__header">
+      <h2 class="section__title">Lagu tidak tersedia</h2>
+    </div>
+
+    <div class="sr-card">
+      <div class="sr-icon-wrap">
+        <span class="sr-icon">🎧</span>
+      </div>
+
+      <div class="sr-text-main">
+        <p class="sr-subtitle">Maaf, lagu yang Anda tuju sudah dihapus.</p>
+        <p class="sr-body">
+          Lagu ini mungkin dihapus oleh admin karena beberapa alasan
+          atau dianggap mengganggu kebijakan kami.
+        </p>
+
+        <div class="sr-actions">
+          <a href="{{ url_for('home_page') }}"
+             data-shell-link
+             class="sr-btn-primary">
+            Kembali ke beranda
+          </a>
+
+          <a href="{{ url_for('song_library') }}"
+             data-shell-link
+             class="sr-btn-ghost">
+            Lihat lagu lainnya
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

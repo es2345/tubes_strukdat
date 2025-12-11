@@ -1,0 +1,185 @@
+{% extends "base_shell.html" %} {% block title %}MyMusic – Home{% endblock %} {%
+block content %}
+
+<!-- KONTEN HOME -->
+<div class="chip-row">
+  <button class="chip chip--active">All</button>
+</div>
+
+<!-- Your Playlist -->
+<section class="section">
+  <div class="section__header">
+    <h2 class="section__title">Your Playlist</h2>
+    <a
+      href="{{ url_for('song_library', view='playlists') }}"
+      class="section__link"
+      data-shell-link
+    >
+      Show all
+    </a>
+  </div>
+
+  <div class="card-row">
+    {% for pl in root_playlists %} {# ambil cover playlist; kalau belum ada,
+    pakai default_cover #} {% set card_cover = pl.cover_url or
+    url_for('serve_cover', filename='default_cover.png') %}
+
+    <a
+      href="{{ url_for('playlist_page', playlist_name=pl.name) }}"
+      data-shell-link
+      class="card playlist-card"
+      style="text-decoration: none; color: inherit"
+    >
+      <div
+        class="card__image"
+        style="background-image:url('{{ card_cover }}');"
+      ></div>
+
+      <div class="card__title">{{ pl.name }}</div>
+      <div class="card__subtitle">
+        Playlist • {{ current_user.display_name }}
+      </div>
+    </a>
+    {% endfor %} {# PLAYLIST DI DALAM FOLDER #} {% for folder in folders %} {%
+    for pl in folder.playlists %} {% set card_cover = pl.cover_url or
+    url_for('serve_cover', filename='default_cover.png') %}
+
+    <a
+      href="{{ url_for('playlist_page', playlist_name=pl.name) }}"
+      data-shell-link
+      class="card playlist-card"
+      style="text-decoration: none; color: inherit"
+    >
+      <div
+        class="card__image"
+        style="background-image:url('{{ card_cover }}');"
+      ></div>
+
+      <div class="card__title">{{ pl.name }}</div>
+      <div class="card__subtitle">
+        Playlist • {{ current_user.display_name }}
+      </div>
+    </a>
+    {% endfor %} {% endfor %}
+  </div>
+</section>
+
+<!-- RIWAYAT LAGU YANG DIDENGARKAN (STACK) -->
+<section class="section">
+  <div class="section__header">
+    <h2 class="section__title">Listening History</h2>
+    <a
+      href="{{ url_for('song_library', view='history') }}"
+      class="section__link"
+      data-shell-link
+    >
+      Show all
+    </a>
+  </div>
+  <div class="section__grid" id="listeningHistoryGrid">
+    {# diisi JS seperti sudah kamu buat #}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section__header">
+    <h2 class="section__title">10 Random Songs (Refresh to shuffle)</h2>
+    <a
+      href="{{ url_for('song_library', view='all') }}"
+      class="section__link"
+      data-shell-link
+    >
+      Show all
+    </a>
+  </div>
+
+  <div class="card-row">
+    {% for song in random_songs %}
+    <a
+      href="{{ url_for('song_page', song_id=song.id) }}"
+      data-shell-link
+      style="text-decoration: none; color: inherit"
+    >
+      <article
+        class="card song-card"
+        data-title="{{ song.title }}"
+        data-artist="{{ song.artist or 'Unknown artist' }}"
+        data-cover="{{ song.cover_url or url_for('static', filename='images/default_cover.jpg') }}"
+      >
+        <div
+          class="card__image"
+          style="background-image:url('{{ song.cover_url or url_for('static', filename='images/default_cover.jpg') }}');"
+        ></div>
+        <div class="card__title">{{ song.title }}</div>
+        <div class="card__subtitle">{{ song.artist or 'Unknown artist' }}</div>
+      </article>
+    </a>
+    {% else %}
+    <article class="card">
+      <div class="card__image"></div>
+      <div class="card__title">Belum ada lagu di library</div>
+      <div class="card__subtitle">
+        Tambahkan lagu lewat Admin panel untuk melihat daftar lagu di sini.
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<script>
+  // global, bisa dipanggil juga dari global_player.js
+  window.renderListeningHistorySection = function () {
+    const container = document.getElementById("listeningHistoryGrid");
+    if (!container || !window.MusicHistory) return;
+
+    container.innerHTML = "";
+
+    const arr = window.MusicHistory.getListeningHistory(); // terbaru dulu
+    if (!arr || arr.length === 0) {
+      container.innerHTML =
+        '<p class="section__empty">Belum ada riwayat pemutaran.</p>';
+      return;
+    }
+
+    const seen = new Set();
+    const unique = [];
+    for (const t of arr) {
+      if (!t || !t.id) continue;
+      if (seen.has(t.id)) continue;
+      seen.add(t.id);
+      unique.push(t);
+    }
+
+    unique.slice(0, 10).forEach((track) => {
+      const cover = track.cover_url || "";
+      const title = track.title || "Unknown title";
+      const artist = track.artist || "Unknown artist";
+
+      const link = document.createElement("a");
+      link.href = "/song/" + track.id;
+      link.setAttribute("data-shell-link", "");
+      link.style.textDecoration = "none";
+      link.style.color = "inherit";
+
+      const card = document.createElement("article");
+      card.className = "card song-card";
+      card.dataset.songId = track.id;
+
+      card.innerHTML = `
+        <div class="card__image" style="background-image:url('${cover}')"></div>
+        <div class="card__title">${title}</div>
+        <div class="card__subtitle">${artist}</div>
+      `;
+
+      link.appendChild(card);
+      container.appendChild(link);
+    });
+  };
+
+  // render awal saat halaman home dimuat
+  if (window.MusicHistory) {
+    window.renderListeningHistorySection();
+  }
+</script>
+
+{% endblock %}

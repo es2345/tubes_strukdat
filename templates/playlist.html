@@ -1,0 +1,1152 @@
+{% extends "base_shell.html" %}
+
+{% block title %}{{ playlist_name }} – MyMusic{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== PLAYLIST PAGE KHUSUS (di atas shell) ===== */
+
+  /* root khusus halaman playlist, JANGAN pakai .content-wrapper */
+  .playlist-page-root {
+    padding: 18px 22px 20px;
+    background: radial-gradient(circle at top, #3b1116, #121212 45%);
+  }
+
+
+  .song-detail-page {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(
+      circle at top left,
+      #b32627 0,
+      #121212 45%,
+      #000 100%
+    );
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .playlist-scroll {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #121212;
+  }
+
+  .playlist-header-wrapper {
+    position: relative;
+    padding: 32px 40px 28px;
+    background: #121212;
+    overflow: hidden;
+  }
+
+  .playlist-header-bg {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px);
+    transform: scale(1.1);
+    opacity: 0.9;
+    z-index: 0;
+  }
+
+  .playlist-header-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.35), #121212 80%);
+    z-index: 1;
+  }
+
+  .playlist-header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .playlist-cover {
+    width: 232px;
+    height: 232px;
+    border-radius: 4px;
+    background: #282828;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .playlist-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+  }
+
+  .playlist-cover-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0);
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .playlist-cover:hover .playlist-cover-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  .playlist-cover-icon {
+    font-size: 24px;
+  }
+
+  .playlist-cover-text {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .playlist-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .playlist-meta-top {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .playlist-title {
+    font-size: clamp(32px, 6vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .playlist-meta-bottom {
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .playlist-meta-bottom span.dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+    display: inline-block;
+  }
+
+  .detail-controls-wrapper {
+    background-color: #181818;
+    border-bottom: 1px solid #000;
+  }
+
+  .detail-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 40px 10px;
+  }
+
+  .detail-play-btn,
+  .play-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--accent);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .detail-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.4);
+    background-color: transparent;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .detail-icon-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+  }
+
+  .detail-view-toggle {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .playlist-content-wrapper {
+    background: linear-gradient(to bottom, #121212, #000);
+    padding: 24px 40px 40px;
+  }
+
+  .playlist-content-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .playlist-empty {
+    margin-top: 24px;
+    font-size: 16px;
+    color: #fff;
+  }
+
+  .playlist-empty-sub {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+
+    .playlist-table th.actions-col,
+  .playlist-table td.actions-col {
+    width: 40px;
+    text-align: right;
+  }
+
+  .playlist-remove-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .playlist-remove-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
+
+  .playlist-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .playlist-table thead th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.7;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    text-align: left;
+  }
+
+  .playlist-table thead th.time-col {
+    text-align: right;
+    width: 60px;
+  }
+
+  .playlist-table tbody td {
+    padding: 12px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .playlist-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .playlist-table td.index-col {
+    width: 32px;
+    text-align: right;
+    padding-right: 16px;
+    opacity: 0.7;
+  }
+
+  .playlist-table td.time-col {
+    text-align: right;
+    opacity: 0.8;
+  }
+
+  .playlist-table tbody tr.is-playing {
+    background: rgba(255,255,255,0.06);
+  }
+
+  .song-cell-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .song-cell-title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .song-cell-artist {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+    /* Layout baris lagu di tabel (cover + teks) */
+  .song-cell-layout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .song-cell-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    background-color: #333;
+    flex-shrink: 0;
+  }
+
+
+  /* Full width (nggak dibatasi card tengah) */
+  .playlist-header,
+  .playlist-controls,
+  .playlist-content-inner {
+    max-width: none;
+    margin: 0;
+  }
+
+
+    /* ===== REKOMENDASI LAGU DI BAWAH PLAYLIST ===== */
+
+  .playlist-divider {
+    margin: 24px 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  }
+
+  .playlist-recommend {
+    margin-top: 4px;
+  }
+
+  .playlist-recommend-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .playlist-recommend-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .playlist-recommend-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .playlist-recommend-link {
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .playlist-recommend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .playlist-recommend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+
+  .playlist-recommend-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .playlist-recommend-cover {
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    background: #333;
+    flex-shrink: 0;
+  }
+
+  .playlist-recommend-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .playlist-recommend-song {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .playlist-recommend-artist {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .playlist-recommend-add {
+    border-radius: 999px;
+    padding: 4px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .playlist-recommend-add:hover {
+    background: #ffffff;
+    color: #000000;
+  }
+
+
+  @media (max-width: 768px) {
+    .playlist-header-wrapper,
+    .detail-controls,
+    .playlist-content-wrapper {
+      padding-inline: 16px;
+    }
+
+    .playlist-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .playlist-cover {
+      width: 180px;
+      height: 180px;
+    }
+  }
+</style>
+
+
+  <!-- WRAPPER PLAYLIST -->
+  <div class="content-wrapper">
+    <div class="song-detail-page">
+      <div class="playlist-scroll">
+
+        <!-- HEADER PLAYLIST -->
+{% set header_cover = cover_url
+    or url_for('serve_cover', filename='default_cover.png') %}
+
+<div class="playlist-header-wrapper">
+  <div
+    class="playlist-header-bg"
+    style="background-image: linear-gradient(
+              135deg,
+              rgba(255,255,255,0.08),
+              rgba(0,0,0,0.9)
+            ),
+            url('{{ header_cover }}');">
+  </div>
+
+  <div class="playlist-header">
+    <div class="playlist-cover">
+      <img
+        id="playlist-cover-img"
+        src="{{ header_cover }}"
+        alt="{{ playlist_name }}"
+      />
+
+      <!-- overlay yang diklik user -->
+      <div class="playlist-cover-overlay" id="playlistCoverOverlay">
+        <div class="playlist-cover-icon">✏️</div>
+        <div class="playlist-cover-text">Ganti cover</div>
+      </div>
+
+      <!-- form upload, disembunyiin tapi TIDAK display:none -->
+      <form
+        id="playlistCoverForm"
+        action="{{ url_for('upload_playlist_cover', playlist_name=playlist_name) }}"
+        method="post"
+        enctype="multipart/form-data"
+        style="position:absolute; inset:0; opacity:0; pointer-events:none;"
+      >
+        <input
+          type="file"
+          name="cover"
+          id="playlistCoverInput"
+          accept="image/*"
+          style="position:absolute; inset:0; opacity:0; pointer-events:auto; cursor:pointer;"
+        />
+      </form>
+    </div>
+
+
+
+            <div class="playlist-meta">
+              <div class="playlist-meta-top">PUBLIC PLAYLIST</div>
+              <h1 class="playlist-title">{{ playlist_name }}</h1>
+
+              <div class="playlist-meta-bottom">
+                <span>By MyMusic</span>
+                <span class="dot"></span>
+                <span>{{ song_count }} songs • {{ duration_label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROL BAR -->
+        <div class="detail-controls-wrapper">
+          <div class="detail-controls">
+            <button class="play-btn" id="playlistPlayBtn">▶</button>
+            <div class="detail-view-toggle">
+              <span>List</span> | <span>Compact</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ISI PLAYLIST -->
+        <div class="playlist-content-wrapper">
+          <div class="playlist-content-inner">
+            {% if songs %}
+            <table class="playlist-table">
+              <thead>
+  <tr>
+    <th style="width:40px;">#</th>
+    <th>Title</th>
+    <th class="time-col">⏱</th>
+    <th class="actions-col"></th>
+  </tr>
+</thead>
+
+              <tbody data-role="playlist-body">
+                {% for song in songs %}
+                <tr class="playlist-row"
+                    data-index="{{ loop.index0 }}"
+                    data-id="{{ song.id }}"
+                    data-title="{{ song.title }}"
+                    data-artist="{{ song.artist or 'Unknown artist' }}"
+                    data-audio="{{ song.audio_url }}"
+                    data-cover="{{ song.cover_url or url_for('serve_cover', filename='default_cover.png') }}">
+                  <td class="index-col">{{ loop.index }}</td>
+                  <td>
+  <a href="{{ url_for('song_page', song_id=song.id) }}"
+     data-shell-link
+     style="text-decoration:none; color:inherit;">
+    <div class="song-cell-layout">
+      <div
+        class="song-cell-cover"
+        style="background-image:url('{{ song.cover_url or url_for('serve_cover', filename='default_cover.png') }}');">
+      </div>
+      <div class="song-cell-main">
+        <span class="song-cell-title">{{ song.title }}</span>
+        <span class="song-cell-artist">
+          {{ song.artist or 'Unknown artist' }}
+          {% if song.album %} • {{ song.album }}{% endif %}
+        </span>
+      </div>
+    </div>
+  </a>
+</td>
+
+                  <td class="time-col">
+  {% if song.duration_ms %}
+    {% set mins = (song.duration_ms // 60000) %}
+    {% set secs = (song.duration_ms // 1000) % 60 %}
+    {{ mins }}:{% if secs < 10 %}0{% endif %}{{ secs }}
+  {% else %}
+    -
+  {% endif %}
+</td>
+
+<td class="actions-col">
+  <form
+    method="post"
+    action="{{ url_for('remove_song_from_playlist',
+                       playlist_name=playlist_name,
+                       song_id=song.id) }}"
+    class="playlist-remove-form"
+  >
+    <button
+      type="submit"
+      class="playlist-remove-btn"
+      title="Remove from this playlist">
+      ✕
+    </button>
+  </form>
+</td>
+
+
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <!-- PEMBATAS DI BAWAH PLAYLIST -->
+            <div class="playlist-divider"></div>
+
+            <!-- REKOMENDASI LAGU (DUMMY DULU) -->
+            <section class="playlist-recommend">
+         <div class="playlist-divider"></div>
+
+<section class="playlist-recommend">
+  <div class="playlist-recommend-header">
+    <div>
+      <div class="playlist-recommend-title">Recommended</div>
+      <div class="playlist-recommend-sub">
+        Based on what's in this playlist
+      </div>
+    </div>
+
+  </div>
+
+<div class="playlist-recommend-list">
+  {% if recommended_songs %}
+    {% for rec in recommended_songs %}
+      <div class="playlist-recommend-item">
+        <div class="playlist-recommend-main">
+          <div class="playlist-recommend-cover">
+            {% if rec.cover_url %}
+              <img
+                src="{{ rec.cover_url }}"
+                alt="{{ rec.title }}"
+                style="width:100%;height:100%;object-fit:cover;border-radius:4px;display:block;"
+              />
+            {% endif %}
+          </div>
+          <div class="playlist-recommend-text">
+            <div class="playlist-recommend-song">{{ rec.title }}</div>
+            <div class="playlist-recommend-artist">
+              {{ rec.artist }}{% if rec.album %} • {{ rec.album }}{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- INI BAGIAN PENTING: tombol Add pakai form POST -->
+        <form
+          method="post"
+          action="{{ url_for('add_song_to_playlist',
+                             playlist_id=playlist.id,
+                             song_id=rec.id) }}"
+        >
+          <!-- supaya setelah Add balik lagi ke halaman playlist ini -->
+          <input type="hidden"
+                 name="next"
+                 value="{{ url_for('playlist_page', playlist_name=playlist_name) }}">
+          <button
+  type="button"
+  class="playlist-recommend-add"
+  data-playlist-id="{{ playlist.id }}"
+  data-song-id="{{ rec.id }}"
+>
+  Add
+</button>
+
+        </form>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div style="font-size:13px;color:var(--text-muted);">
+      Rekomendasi belum tersedia untuk playlist ini.
+    </div>
+  {% endif %}
+</div>
+</section>
+
+            </section>
+
+
+            {% else %}
+            <div class="playlist-empty">
+              Let’s find something for your playlist
+            </div>
+            <div class="playlist-empty-sub">
+              Use the search box above, or browse songs on the Home page and add them to "{{ playlist_name }}".
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div><!-- /playlist-scroll -->
+    </div><!-- /song-detail-page -->
+  </div><!-- /content-wrapper -->
+{% endblock %}
+
+{% block body_extra %}
+
+
+ <script data-page-init>
+  // === 1. Setup form upload cover playlist ===
+  (function setupPlaylistCoverUpload() {
+    const overlay = document.getElementById('playlistCoverOverlay');
+    const img     = document.getElementById('playlist-cover-img');
+    const input   = document.getElementById('playlistCoverInput');
+    const form    = document.getElementById('playlistCoverForm');
+
+    // kalau elemen penting nggak ada, keluar aja
+    if (!input || !form) return;
+
+    function openFilePicker(e) {
+      if (e) e.preventDefault();
+      input.click();
+    }
+
+    // klik overlay atau gambar cover = buka file picker
+    if (overlay) {
+      overlay.addEventListener('click', openFilePicker);
+    }
+    if (img) {
+      img.addEventListener('click', openFilePicker);
+    }
+
+    // ketika user pilih file, langsung submit form
+    input.addEventListener('change', function () {
+      if (input.files && input.files.length > 0) {
+        form.submit();
+      }
+    });
+  })();
+
+  // === 2. Player khusus playlist (seperti versi kamu sebelumnya) ===
+(function setupPlaylistPlayer() {
+  const rows    = Array.from(document.querySelectorAll('.playlist-row'));
+  const playBtn = document.getElementById('playlistPlayBtn');
+  const audioEl = document.getElementById('globalAudio');
+
+  const titleEl  = document.querySelector('.player__track-title');
+  const artistEl = document.querySelector('.player__track-artist');
+  const coverEl  = document.querySelector('.player__cover');
+
+  const prevBtn  = document.getElementById('btnPrev');
+  const nextBtn  = document.getElementById('btnNext');
+
+  if (!rows.length || !playBtn || !audioEl) return;
+
+  const tracks = rows.map((row, i) => ({
+    index:     i,
+    id:        parseInt(row.dataset.id, 10),
+    title:     row.dataset.title  || 'Unknown title',
+    artist:    row.dataset.artist || 'Unknown artist',
+    audio_url: row.dataset.audio,
+    cover_url: row.dataset.cover
+  }));
+
+  let currentIndex   = -1;
+  let playlistActive = false;   // <-- ini jangan hilang
+
+  // === Hook global agar script Add bisa sinkron dengan player playlist ===
+  window.PlaylistPage = window.PlaylistPage || {};
+
+    // kalau ada lagu dihapus dari playlist (via AJAX), sinkronkan rows & tracks
+  window.PlaylistPage.onSongRemoved = function (songId) {
+    if (!songId) return;
+    const idNum = parseInt(songId, 10);
+
+    // cari index track yang dihapus di array tracks
+    const idx = tracks.findIndex(t => t.id === idNum);
+    if (idx === -1) return;
+
+    // buang dari array lokal
+    tracks.splice(idx, 1);
+    rows.splice(idx, 1);
+
+    // geser currentIndex kalau perlu
+    if (currentIndex > idx) {
+      currentIndex -= 1;
+    } else if (currentIndex === idx) {
+      // kalau yang dihapus itu lagu yang *lagi* diputar
+      if (tracks.length === 0) {
+        playlistActive = false;
+        currentIndex   = -1;
+        markPlaying(-1);
+        return;
+      }
+
+      if (currentIndex >= tracks.length) {
+        currentIndex = tracks.length - 1;
+      }
+
+      markPlaying(currentIndex);
+
+      // rebuild queue DLL biar antrian global ikut update
+      if (
+        playlistActive &&
+        window.AppPlayer &&
+        typeof window.AppPlayer.playPlaylist === 'function'
+      ) {
+        const resumeTime = audioEl.currentTime || 0;
+        const safeIndex  = currentIndex < 0 ? 0 : currentIndex;
+
+        window.AppPlayer.playPlaylist(tracks, safeIndex);
+
+        if (!isNaN(resumeTime) && resumeTime > 0) {
+          try {
+            audioEl.currentTime = resumeTime;
+          } catch (e) {
+            console.warn('Gagal set currentTime setelah rebuild queue (delete)', e);
+          }
+        }
+
+        audioEl.play().catch(() => {});
+      }
+    }
+  };
+
+
+    // highlight baris yang lagi main
+    function markPlaying(index) {
+      rows.forEach(r => r.classList.remove('is-playing'));
+      if (index >= 0 && rows[index]) {
+        rows[index].classList.add('is-playing');
+      }
+    }
+
+    // update ikon tombol hijau di playlist
+    function updatePlayButton() {
+      if (!playBtn) return;
+      playBtn.textContent = audioEl.paused ? '▶' : '⏸';
+    }
+
+    // mulai main dari index tertentu DAN isi queue global dengan tracks playlist
+    function startFrom(index) {
+      const track = tracks[index];
+      if (!track || !track.audio_url) return;
+
+      currentIndex   = index;
+      playlistActive = true;
+      markPlaying(index);
+
+      if (window.AppPlayer && typeof window.AppPlayer.playPlaylist === 'function') {
+        // Isi queue + langsung play lewat player global
+        window.AppPlayer.playPlaylist(tracks, index);
+      } else {
+        // fallback kalau AppPlayer belum tersedia (harusnya jarang kejadian)
+        audioEl.src = track.audio_url;
+
+        if (titleEl)  titleEl.textContent  = track.title;
+        if (artistEl) artistEl.textContent = track.artist;
+        if (coverEl && track.cover_url) {
+          coverEl.style.backgroundImage = `url('${track.cover_url}')`;
+        }
+
+        audioEl.play().catch(err => {
+          console.error('[playlist] fallback play fail', err);
+        });
+      }
+    }
+
+    // Klik tombol hijau di playlist
+    playBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      // belum pernah play dari playlist → mulai dari lagu pertama
+      if (!playlistActive || currentIndex === -1) {
+        startFrom(0);
+        return;
+      }
+
+      // kalau sudah aktif, tombol hijau jadi toggle play/pause
+      if (window.AppPlayer && typeof window.AppPlayer.togglePlay === 'function') {
+        window.AppPlayer.togglePlay();
+      } else {
+        if (audioEl.paused) {
+          audioEl.play()
+            .then(updatePlayButton)
+            .catch(err => console.error('[playlist] resume fail', err));
+        } else {
+          audioEl.pause();
+          updatePlayButton();
+        }
+      }
+    });
+
+    // Double-click baris lagu → langsung main lagu itu + set queue playlist
+    rows.forEach((row, i) => {
+      row.addEventListener('dblclick', function () {
+        startFrom(i);
+      });
+    });
+
+    // Sinkron highlight saat user klik prev/next di player global
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function () {
+        if (!playlistActive) return;
+        if (currentIndex <= 0) return;
+
+        currentIndex -= 1;
+        markPlaying(currentIndex);
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function () {
+        if (!playlistActive) return;
+        if (currentIndex < 0 || currentIndex >= tracks.length - 1) return;
+
+        currentIndex += 1;
+        markPlaying(currentIndex);
+      });
+    }
+
+    // sinkron ikon tombol hijau dengan status audio global
+    audioEl.addEventListener('play',  updatePlayButton);
+    audioEl.addEventListener('pause', updatePlayButton);
+
+    // set awal ikon ▶ / ⏸
+    updatePlayButton();
+  })();
+
+
+   // === 3. AJAX add/remove lagu dari playlist ===
+  (function () {
+    const tableBody =
+      document.querySelector('[data-role="playlist-body"]') ||
+      document.querySelector('tbody');
+    const PLAYLIST_NAME = "{{ playlist_name }}";
+    const DEFAULT_COVER = "{{ url_for('serve_cover', filename='default_cover.png') }}";
+
+    if (!tableBody) return;
+
+    // ====== UTIL: RE-INDEX NOMOR URUT ======
+function reindexRows() {
+  const rows = Array.from(tableBody.querySelectorAll('.playlist-row'));
+  rows.forEach((row, idx) => {
+    row.dataset.index = idx;
+    const indexCell = row.querySelector('.index-col');
+    if (indexCell) {
+      indexCell.textContent = idx + 1;
+    }
+  });
+}
+
+    // =====================================================
+    // 1) DELETE LAGU DARI PLAYLIST (ikon ✕)
+    // =====================================================
+    document.addEventListener('submit', async function (e) {
+      const form = e.target.closest('.playlist-remove-form');
+      if (!form) return;
+
+      e.preventDefault();
+
+      const row = form.closest('.playlist-row');
+      if (!row) return;
+
+      if (!confirm('Hapus lagu ini dari playlist?')) return;
+
+      let data = null;
+
+      // 1) CUMA fetch + JSON yang boleh bikin alert gagal
+      try {
+        const resp = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        try {
+          data = await resp.json();
+        } catch (err) {
+          console.warn('Gagal parse JSON delete:', err);
+        }
+
+        if (!resp.ok || !data || !data.success) {
+          const msg = (data && data.error) || 'Gagal menghapus lagu dari playlist.';
+          throw new Error(msg);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Gagal menghapus lagu dari playlist. Coba reload halaman.');
+        return;  // << JANGAN lanjut ubah DOM
+      }
+
+      // 2) Kalau sampai sini = backend OK, baru ubah DOM & queue
+      const songId = row.dataset.id;
+
+      row.remove();
+      reindexRows();
+
+      if (window.PlaylistPage && typeof window.PlaylistPage.onSongRemoved === 'function') {
+        try {
+          window.PlaylistPage.onSongRemoved(songId);
+        } catch (err) {
+          console.warn('onSongRemoved error:', err);
+          // jangan lempar error lagi, cukup log
+        }
+      }
+    });
+
+    // =====================================================
+    // 2) ADD DARI RECOMMENDED (tombol "Add")
+    // =====================================================
+    document.addEventListener('click', async function (e) {
+  const btn = e.target.closest('.playlist-recommend-add');
+  if (!btn) return;
+
+  e.preventDefault();
+
+  const item = btn.closest('.playlist-recommend-item');
+  const playlistId = btn.dataset.playlistId;
+  const songId = btn.dataset.songId;
+
+  if (!playlistId || !songId) {
+    console.warn('playlistId / songId hilang di tombol Add.');
+    return;
+  }
+
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Adding…';
+
+  let data = null;
+
+  // 1) Lagi-lagi: cuma fetch + JSON yang boleh munculin alert gagal
+  try {
+    const resp = await fetch(`/playlist/${playlistId}/add-song/${songId}`, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+
+    try {
+      data = await resp.json();
+    } catch (err) {
+      console.warn('Gagal parse JSON add:', err);
+    }
+
+    if (!resp.ok || !data || !data.success) {
+      const msg = (data && data.error) || 'Gagal menambahkan lagu.';
+      throw new Error(msg);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Gagal menambahkan lagu ke playlist. Coba reload halaman.');
+    btn.disabled = false;
+    btn.textContent = originalText;
+    return;  // stop di sini
+  }
+
+  // 2) kalau backend OK → update UI
+  if (item) item.remove();
+
+  if (!data.added) {
+    // sudah ada di playlist, gak usah bikin row baru
+    btn.disabled = false;
+    btn.textContent = originalText;
+    return;
+  }
+
+  const song = data.song;
+  if (!song) {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    return;
+  }
+
+  // cek duplikat di DOM
+  const existingRow = tableBody.querySelector(`.playlist-row[data-id="${song.id}"]`);
+  if (existingRow) {
+    existingRow.classList.add('playlist-row-highlight');
+    setTimeout(() => existingRow.classList.remove('playlist-row-highlight'), 600);
+    btn.disabled = false;
+    btn.textContent = originalText;
+    return;
+  }
+
+  const currentCount = tableBody.querySelectorAll('.playlist-row').length;
+  const tr = document.createElement('tr');
+  tr.className = 'playlist-row';
+  tr.dataset.id     = song.id;
+  tr.dataset.index  = currentCount;
+  tr.dataset.title  = song.title  || 'Unknown title';
+  tr.dataset.artist = song.artist || 'Unknown artist';
+  tr.dataset.audio  = song.audio_url;
+  tr.dataset.cover  = song.cover_url || DEFAULT_COVER;
+
+  const albumText    = song.album ? ` • ${song.album}` : '';
+  const durationText = song.duration_label || '-';
+  const coverUrl     = song.cover_url || DEFAULT_COVER;
+
+  tr.innerHTML = `
+    <td class="index-col">${currentCount + 1}</td>
+    <td>
+      <a href="/song/${song.id}"
+         data-shell-link
+         style="text-decoration:none; color:inherit;">
+        <div class="song-cell-layout">
+          <div class="song-cell-cover"
+               style="background-image:url('${coverUrl}');">
+          </div>
+          <div class="song-cell-main">
+            <span class="song-cell-title">${song.title || ''}</span>
+            <span class="song-cell-artist">
+              ${song.artist || ''}${albumText}
+            </span>
+          </div>
+        </div>
+      </a>
+    </td>
+    <td class="time-col">${durationText}</td>
+    <td class="actions-col">
+      <form method="post"
+            action="/playlist/${encodeURIComponent(PLAYLIST_NAME)}/remove-song/${song.id}"
+            class="playlist-remove-form">
+        <button type="submit"
+                class="playlist-remove-btn"
+                title="Hapus dari playlist">✕</button>
+      </form>
+    </td>
+  `;
+
+  tableBody.appendChild(tr);
+  reindexRows();
+
+  // kabari player playlist
+  if (window.PlaylistPage && typeof window.PlaylistPage.onSongAdded === 'function') {
+    try {
+      window.PlaylistPage.onSongAdded(song, tr);
+    } catch (err) {
+      console.warn('onSongAdded error:', err);
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = originalText;
+});
+  })();
+
+
+  
+</script>
+
+{% endblock %}

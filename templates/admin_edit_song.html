@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MyMusic – Admin Edit Song</title>
+  <style>
+    :root {
+      --bg-main: #121212;
+      --bg-page: #000000;
+      --bg-card: #181818;
+      --bg-panel: #121212;
+      --bg-player: #181818;
+      --accent: #1db954;
+      --text-main: #ffffff;
+      --text-muted: #b3b3b3;
+      --border-subtle: rgba(255,255,255,0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI";
+      background: var(--bg-page);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) 80px;
+      height: 100vh;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      grid-row: 1 / 3;
+      background-color: var(--bg-panel);
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      border-right: 1px solid #000;
+    }
+
+    .sidebar__logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-inline: 2px;
+    }
+
+    .sidebar__logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .sidebar__logo-text {
+      font-weight: 700;
+      font-size: 17px;
+    }
+
+    .sidebar__section-title {
+      margin-top: 8px;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .sidebar__nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar__item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s, transform 0.08s;
+    }
+
+    .sidebar__item:hover {
+      background-color: #1f1f1f;
+      color: var(--text-main);
+    }
+
+    .sidebar__item--active {
+      background-color: #1db95422;
+      color: var(--text-main);
+    }
+
+    .sidebar__item-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background-color: #1f1f1f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .sidebar__footer {
+      margin-top: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sidebar__footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 11px;
+    }
+
+    .sidebar__footer a:hover {
+      text-decoration: underline;
+    }
+
+    .sidebar__logout {
+      margin-top: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-main);
+      background-color: transparent;
+    }
+
+    .sidebar__logout:hover {
+      background-color: #1f1f1f;
+    }
+
+    /* ===== MAIN ===== */
+    .main {
+      background: var(--bg-main);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 60px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 13px;
+    }
+
+    .topbar__left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: #181818;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .topbar__title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .admin-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #18181b;
+      color: var(--text-muted);
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #f97316;
+      color: #000;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .user-menu {
+      position: relative;
+    }
+
+    .user-menu__dropdown {
+      position: absolute;
+      right: 0;
+      top: 110%;
+      background: #18181b;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      min-width: 180px;
+      padding: 6px 0;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 50;
+    }
+
+    .user-menu__dropdown--open {
+      display: block;
+    }
+
+    .user-menu__item {
+      width: 100%;
+      text-align: left;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--text-main);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .user-menu__item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .user-menu__item--label {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 4px;
+      cursor: default;
+    }
+
+    .user-menu__email {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .user-menu__item--danger {
+      color: #f97373;
+    }
+
+    .user-menu__item--danger:hover {
+      background: #451a1a;
+    }
+
+    .content {
+      flex: 1;
+      padding: 22px 28px;
+      background: radial-gradient(circle at top, #020617, #020617 65%);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-inner {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .page-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 600px;
+      max-width: 100%;
+      margin: 0 auto 6px;
+      text-align: center;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ===== FORM ===== */
+    .form-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 600px);
+      justify-content: center;
+      gap: 20px;
+      align-items: flex-start;
+      margin-top: 16px;
+    }
+
+    .form-card {
+      background: rgba(0,0,0,0.45);
+      border-radius: 18px;
+      border: 1px solid var(--border-subtle);
+      padding: 20px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .form-card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    input, select, textarea {
+      background: #0b0b0b;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+      max-height: 150px;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .form-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 16px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.05);
+    }
+
+    .btn-secondary:hover {
+      background: #1f2933;
+    }
+
+    @media (max-width: 900px) {
+      .content {
+        padding: 18px 16px;
+      }
+
+      .app {
+        grid-template-columns: 70px minmax(0, 1fr);
+      }
+
+      .sidebar__logo-text,
+      .sidebar__section-title {
+        display: none;
+      }
+
+      .sidebar__item span:last-child {
+        display: none;
+      }
+    }
+
+    @media (max-width: 700px) {
+      /* kalau nanti ada player center, bisa disembunyikan di sini */
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">
+      <div class="sidebar__logo-icon">♪</div>
+      <div class="sidebar__logo-text">MyMusic Admin</div>
+    </div>
+
+    <div>
+      <div class="sidebar__section-title">Main</div>
+      <nav class="sidebar__nav">
+        <div class="sidebar__item"
+             onclick="window.location.href='{{ url_for('admin_page') }}'">
+          <div class="sidebar__item-icon">📊</div>
+          <span>Dashboard</span>
+        </div>
+        <div class="sidebar__item sidebar__item--active"
+             onclick="window.location.href='{{ url_for('admin_view_all_song') }}'">
+          <div class="sidebar__item-icon">🎵</div>
+          <span>Playlists</span>
+        </div>
+      </nav>
+
+      <nav class="sidebar__nav">
+        <div class="sidebar__item">
+          <!-- slot untuk menu lain -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="sidebar__footer">
+      <span style="font-size:11px;">v0.1 • Demo panel</span>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar__left">
+        <button class="back-btn"
+                onclick="window.location.href='{{ url_for('admin_view_all_song') }}'">
+          ←
+        </button>
+        <span class="topbar__title">Edit song</span>
+        <span class="admin-badge">Admin</span>
+      </div>
+
+      <div class="user-menu">
+        <button class="avatar" id="admin-avatar-btn">
+          {{ (current_user.display_name or 'A')[0]|upper }}
+        </button>
+        <div class="user-menu__dropdown" id="admin-menu-dropdown">
+          <div class="user-menu__item user-menu__item--label">
+            {{ current_user.display_name or 'Admin' }}
+            <span class="user-menu__email">{{ current_user.email }}</span>
+          </div>
+          <button type="button" class="user-menu__item">
+            Profile
+          </button>
+          <button type="button" class="user-menu__item">
+            Settings
+          </button>
+          <button type="button"
+                  class="user-menu__item user-menu__item--danger"
+                  onclick="window.location.href='{{ url_for('logout') }}'">
+            Log out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="content-inner">
+        <div class="page-header">
+          <h1 class="page-title">Edit song data</h1>
+          <p class="page-subtitle">
+            Perbarui informasi lagu di library. Perubahan akan muncul di tampilan user.
+          </p>
+        </div>
+
+        {% if errors %}
+        <ul style="margin:0 auto 10px; font-size:12px; color:#fecaca; max-width:600px;">
+          {% for e in errors %}
+            <li>{{ e }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        <section class="form-layout">
+          <form class="form-card"
+                method="POST"
+                action="{{ url_for('admin_edit_song', song_id=song.id) }}">
+            <h2 class="form-card-title">Song information</h2>
+
+            {% set total_seconds = (song.duration_ms or 0) // 1000 %}
+            {% set mins = total_seconds // 60 %}
+            {% set secs = total_seconds % 60 %}
+            {% set duration_str = mins ~ ':' ~ ('0' if secs < 10 else '') ~ secs %}
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="song-id">Song ID</label>
+                <input id="song-id"
+                       type="text"
+                       value="S{{ '%03d' % song.id }}"
+                       readonly />
+                <span class="hint">ID biasanya tidak diubah.</span>
+              </div>
+              <div class="form-group">
+                <label for="song-title">Title</label>
+                <input id="song-title"
+                       name="title"
+                       type="text"
+                       value="{{ song.title }}" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="song-artist">Artist</label>
+                <input id="song-artist"
+                       name="artist"
+                       type="text"
+                       value="{{ song.artist }}" />
+              </div>
+              <div class="form-group">
+                <label for="song-album">Album</label>
+                <input id="song-album"
+                       name="album"
+                       type="text"
+                       value="{{ song.album or '' }}" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="song-genre">Genre</label>
+                <select id="song-genre" name="genre">
+                  {% set g = song.genre or '' %}
+                  <option value="">-</option>
+                  <option value="EDM"       {{ 'selected' if g == 'EDM' else '' }}>EDM</option>
+                  <option value="Pop"       {{ 'selected' if g == 'Pop' else '' }}>Pop</option>
+                  <option value="Rock"      {{ 'selected' if g == 'Rock' else '' }}>Rock</option>
+                  <option value="Hip-Hop"   {{ 'selected' if g == 'Hip-Hop' else '' }}>Hip-Hop</option>
+                  <option value="Jazz"      {{ 'selected' if g == 'Jazz' else '' }}>Jazz</option>
+                  <option value="Classical" {{ 'selected' if g == 'Classical' else '' }}>Classical</option>
+                  <option value="Other"     {{ 'selected' if g == 'Other' else '' }}>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="song-year">Year</label>
+                <input id="song-year"
+                       name="year"
+                       type="number"
+                       value="{{ song.year or '' }}" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="song-duration">Duration (mm:ss)</label>
+                <input id="song-duration"
+                       name="duration"
+                       type="text"
+                       value="{{ duration_str if song.duration_ms else '' }}" />
+              </div>
+              <div class="form-group">
+                <label for="song-file">Audio source / file path</label>
+                <input id="song-file"
+                       name="audio_url"
+                       type="text"
+                       value="{{ song.audio_url or '' }}" />
+                <span class="hint">
+                  Contoh: /audio/namafile.mp3. Kosongkan jika tidak ingin mengubah.
+                </span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="song-desc">Description / notes</label>
+              <textarea id="song-desc"
+                        name="description">{{ song.description or '' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-secondary"
+                      onclick="window.location.href='{{ url_for('admin_view_all_song') }}'">
+                Cancel
+              </button>
+              <button type="submit" class="btn-primary">
+                Update Song
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const avatarBtn = document.getElementById('admin-avatar-btn');
+    const menu = document.getElementById('admin-menu-dropdown');
+
+    if (!avatarBtn || !menu) return;
+
+    avatarBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      menu.classList.toggle('user-menu__dropdown--open');
+    });
+
+    document.addEventListener('click', function () {
+      menu.classList.remove('user-menu__dropdown--open');
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        menu.classList.remove('user-menu__dropdown--open');
+      }
+    });
+  });
+</script>
+</body>
+</html>

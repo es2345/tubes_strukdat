@@ -1,0 +1,632 @@
+{% extends "base_shell.html" %}
+
+{% block title %}Profile – MyMusic{% endblock %}
+
+{% block content %}
+<style>
+  .profile-page-root {
+    padding: 18px 22px 20px;
+    background: radial-gradient(circle at top, #3b1116, #121212 45%);
+  }
+
+  .profile-detail-page {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(
+      circle at top left,
+      #b38b3b 0,
+      #121212 45%,
+      #000 100%
+    );
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .profile-scroll {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #121212;
+  }
+
+  .profile-header-wrapper {
+    position: relative;
+    padding: 32px 40px 28px;
+    background: #121212;
+    overflow: hidden;
+  }
+
+  .profile-header-bg {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px);
+    transform: scale(1.1);
+    opacity: 0.9;
+    z-index: 0;
+  }
+
+  .profile-header-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.35), #121212 80%);
+    z-index: 1;
+  }
+
+  .profile-header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .profile-cover {
+    width: 232px;
+    height: 232px;
+    border-radius: 4px;
+    background: radial-gradient(circle at 50% 30%, #ffffff, #555, #111);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .profile-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+  }
+
+  .profile-meta-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .profile-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .profile-name {
+    font-size: clamp(32px, 6vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    cursor: pointer;
+  }
+
+  .profile-meta {
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .profile-meta span.dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+    display: inline-block;
+  }
+
+  .profile-extra-row {
+    margin-top: 12px;
+    font-size: 18px;
+    color: #e0e0e0;
+  }
+
+  .profile-content-wrapper {
+    background: linear-gradient(to bottom, #121212, #000);
+    padding: 24px 40px 40px;
+  }
+
+  .profile-content-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .profile-section {
+    margin-bottom: 32px;
+  }
+
+  .profile-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .playlist-grid {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .playlist-card {
+    width: 200px;
+    background-color: #181818;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .playlist-card:hover {
+    background-color: #282828;
+    transform: translateY(-2px);
+  }
+
+  .playlist-cover-mini {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #ffb72b, #ff4b6b, #6a5cff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .playlist-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+
+  .playlist-owner {
+    font-size: 12px;
+    color: #b3b3b3;
+    margin-top: 4px;
+  }
+
+  .following-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .following-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 120px;
+  }
+
+  .following-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background-color: #282828;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .following-name {
+    font-size: 14px;
+  }
+
+  .following-type {
+    font-size: 12px;
+    color: #b3b3b3;
+  }
+
+  .profile-footer {
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 24px;
+    font-size: 13px;
+    color: #b3b3b3;
+  }
+
+  .profile-footer-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+
+  .profile-footer-link {
+    margin-bottom: 4px;
+    cursor: pointer;
+  }
+
+  .profile-footer-link:hover {
+    text-decoration: underline;
+  }
+
+  .profile-footer-bottom {
+    grid-column: 1 / -1;
+    font-size: 11px;
+    color: #8c8c8c;
+    margin-top: 8px;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+  }
+
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal-box {
+    width: 520px;
+    max-width: 90%;
+    background-color: #181818;
+    border-radius: 8px;
+    padding: 24px 24px 18px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #b3b3b3;
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+
+  .modal-content-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 18px;
+    align-items: center;
+  }
+
+  .modal-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 30%, #ffffff, #111);
+    flex-shrink: 0;
+  }
+
+  .modal-input-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #b3b3b3;
+    margin-bottom: 6px;
+  }
+
+  .modal-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 4px;
+    border: 1px solid #404040;
+    background-color: #282828;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .modal-input:focus {
+    border-color: #1db954;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+    margin-bottom: 10px;
+  }
+
+  .modal-save-btn {
+    padding: 8px 18px;
+    border-radius: 999px;
+    background-color: #fff;
+    color: #000;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .modal-note {
+    font-size: 11px;
+    color: #b3b3b3;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 768px) {
+    .profile-header-wrapper,
+    .profile-content-wrapper {
+      padding-inline: 16px;
+    }
+
+    .profile-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .profile-cover {
+      width: 180px;
+      height: 180px;
+    }
+  }
+
+  .playlist-cover-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+.profile-more-dots {
+  cursor: pointer;
+  font-size: 20px;
+}
+.profile-more-dots:hover {
+  opacity: 0.8;
+}
+
+.modal-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+
+</style>
+
+<div class="content-wrapper">
+  <div class="profile-page-root">
+    <div class="profile-detail-page">
+      <div class="profile-scroll">
+
+        {% set avatar_bg = user.avatar_url and url_for('static', filename=user.avatar_url) %}
+
+        <!-- HEADER -->
+        <section class="profile-header-wrapper">
+          {% if avatar_bg %}
+          <div
+            class="profile-header-bg"
+            style="background-image:url('{{ avatar_bg }}');">
+          </div>
+          {% endif %}
+
+          <div class="profile-header">
+            <div class="profile-cover">
+              {% if user.avatar_url %}
+                <img src="{{ url_for('static', filename=user.avatar_url) }}" alt="Avatar">
+              {% else %}
+                {{ (user.display_name or 'US')[:2] | upper }}
+              {% endif %}
+            </div>
+
+            <div class="profile-meta-block">
+              <div class="profile-label">Profile</div>
+
+              <!-- klik nama -> buka modal -->
+              <div
+  id="profile-name"
+  class="profile-name"
+  data-profile-modal-trigger
+>
+  {{ current_user.display_name or "U" }}
+</div>
+
+              <div class="profile-meta">
+                <span>{{ current_user.display_name or 'user' }}</span>
+                <span class="dot"></span>
+                <span>
+                  {{ user_playlists|length }} Public Playlist{% if user_playlists|length != 1 %}s{% endif %}
+                </span>
+                
+              </div>
+
+              <div class="profile-extra-row">
+  <span
+    class="profile-more-dots"
+    data-profile-modal-trigger
+  >•••</span>
+</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ISI BAWAH -->
+        <section class="profile-content-wrapper">
+          <div class="profile-content-inner">
+
+            <!-- PUBLIC PLAYLISTS -->
+            <div class="profile-section">
+              <h3 class="profile-section-title">Public Playlists</h3>
+
+              {% if user_playlists %}
+  <div class="playlist-grid">
+    {% for pl in user_playlists %}
+
+      {# kalau playlist gak punya cover, pakai default_cover.png #}
+      {% set playlist_cover = pl.cover_url
+          or url_for('serve_cover', filename='default_cover.png') %}
+
+      <div class="playlist-card"
+           data-playlist-id="{{ pl.id }}"
+           data-playlist-name="{{ pl.name }}">
+        <div class="playlist-cover-mini">
+          <img src="{{ playlist_cover }}" alt="{{ pl.name }}">
+        </div>
+        <div class="playlist-name">{{ pl.name }}</div>
+        <div class="playlist-owner">
+          By {{ user.display_name or "user" }}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+            </div>
+
+          
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT PROFILE -->
+<div id="profile-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div id="modal-close" class="modal-close">✕</div>
+    <div class="modal-title">Profile details</div>
+
+    <form
+      id="profile-form"
+      method="POST"
+      action="{{ url_for('profile_page') }}"
+      enctype="multipart/form-data"
+    >
+      <div class="modal-content-row">
+  <div class="modal-avatar">
+    {% if user.avatar_url %}
+      <img
+        src="{{ url_for('static', filename=user.avatar_url) }}"
+        alt="Avatar"
+        style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
+      />
+    {% else %}
+      <div
+        style="
+          width:100%;
+          height:100%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          font-size:40px;
+          font-weight:700;
+        "
+      >
+        {{ (user.display_name or 'US')[:2] | upper }}
+      </div>
+    {% endif %}
+  </div>
+
+  <div style="flex:1">
+    <div class="modal-input-label">Name</div>
+    <input
+      id="profile-input"
+      name="display_name"
+      class="modal-input"
+      type="text"
+      value="{{ current_user.display_name or 'U' }}"
+    />
+
+    <div class="modal-input-label" style="margin-top:12px;">
+      Profile picture
+    </div>
+    <input
+      type="file"
+      name="avatar"
+      accept="image/*"
+      class="modal-input"
+      style="padding:6px 8px;"
+    />
+  </div>
+</div>
+
+
+      <div class="modal-actions">
+        <button type="submit" class="modal-save-btn">Save</button>
+      </div>
+
+      <p class="modal-note">
+        By proceeding, you agree to give this app access to the image you choose to upload.
+        Please make sure you have the right to upload the image.
+      </p>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block body_extra %}
+<script data-page-init>
+  // modal open/close
+(function () {
+  const triggers   = document.querySelectorAll("[data-profile-modal-trigger]");
+  const modal      = document.getElementById("profile-modal");
+  const modalClose = document.getElementById("modal-close");
+
+  if (modal && triggers.length) {
+    triggers.forEach(el => {
+      el.addEventListener("click", () => {
+        modal.classList.add("show");
+      });
+    });
+  }
+
+  if (modalClose && modal) {
+    modalClose.addEventListener("click", () => {
+      modal.classList.remove("show");
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.remove("show");
+      }
+    });
+  }
+})();
+
+
+  // klik kartu playlist → buka halaman playlist (SPA kalau ada shellNavigate)
+  (function () {
+    const cards = document.querySelectorAll(".playlist-card");
+    if (!cards.length) return;
+
+    cards.forEach(card => {
+      card.addEventListener("click", () => {
+        const name = card.dataset.playlistName;
+        if (!name) return;
+        const url = "/playlist/" + encodeURIComponent(name);
+        if (window.shellNavigate) {
+          window.shellNavigate(url);
+        } else {
+          window.location.href = url;
+        }
+      });
+    });
+  })();
+</script>
+{% endblock %}

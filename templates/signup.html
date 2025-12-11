@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MyMusic – Sign up</title>
+<style>
+  :root {
+    --bg-main: #000000;
+    --card-bg: #101010;
+    --border-subtle: #3a3a3a;
+    --accent: #ffffff;      /* putih sebagai accent */
+    --text-main: #ffffff;
+    --text-muted: #b3b3b3;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .signup-wrapper {
+    max-width: 520px;
+    width: 100%;
+    padding: 40px 24px 60px;
+  }
+
+  .signup-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+    font-size: 38px;
+  }
+
+  .signup-logo span {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000000;
+    font-size: 26px;
+    font-weight: 900;
+  }
+
+  /* ========== EMAIL SCREEN ========== */
+
+  .email-screen {
+    text-align: center;
+  }
+
+  .email-title {
+    font-size: 40px;
+    line-height: 1.25;
+    font-weight: 800;
+    margin-bottom: 24px;
+  }
+
+  .email-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 24px 26px 28px;
+    text-align: left;
+  }
+
+  .form-group {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  label {
+    font-weight: 600;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select {
+    background-color: #000000;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+    padding: 10px 12px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+  }
+
+  input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .link-inline {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #e0e0e0;  /* tadinya hijau, sekarang abu terang */
+    cursor: pointer;
+  }
+
+  .primary-btn {
+    margin-top: 18px;
+    width: 100%;
+    border-radius: 999px;
+    border: none;
+    background-color: var(--accent); /* putih */
+    color: #000000;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 12px 18px;
+    cursor: pointer;
+  }
+
+  .primary-btn:hover {
+    filter: brightness(0.92);
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: #333333;
+  }
+
+  .social-btn {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px solid #ffffff;
+    background: transparent;
+    color: #ffffff;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .social-btn:hover {
+    background-color: #151515;
+  }
+
+  .email-bottom {
+    margin-top: 26px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .email-bottom a {
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .email-bottom a:hover {
+    text-decoration: underline;
+  }
+
+  /* ========== WIZARD SCREEN (STEP 1–3) ========== */
+
+  .wizard-screen {
+    display: none;
+  }
+
+  .progress-bar {
+    height: 2px;
+    background-color: #222222;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .progress-bar__fill {
+    height: 100%;
+    width: 0;
+    background-color: var(--accent); /* putih */
+    transition: width 0.25s ease;
+  }
+
+  .step-card {
+    background-color: var(--card-bg);
+    padding: 28px 28px 30px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .back-btn {
+    border: none;
+    background: transparent;
+    color: #ffffff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+
+  .back-btn[disabled] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .step-title {
+    margin-top: 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .password-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .password-row input {
+    flex: 1;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+  }
+
+  .password-toggle {
+    width: 44px;
+    height: 40px;
+    border-radius: 0 4px 4px 0;
+    border: 1px solid var(--border-subtle);
+    border-left: none;
+    background-color: #000000;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .hint-list {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+      .hint-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hint-dot {
+      display: inline-flex;
+      width: 18px;
+      justify-content: center;
+      color: var(--text-muted);  /* default abu-abu */
+      transition: color 0.15s ease;
+    }
+
+    /* ketika syarat terpenuhi */
+    .hint-item--ok .hint-dot {
+      color: var(--text-main);   /* putih */
+    }
+    .hint-item--ok span:last-child {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    /* tombol Next di-step 1 kalau belum valid */
+    .primary-btn--disabled,
+    .primary-btn[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+
+  .hint-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .hint-dot {
+    color: #ffffff; /* tadinya hijau */
+    font-size: 16px;
+  }
+
+  .dob-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+
+  .dob-row > div {
+    min-width: 0;
+  }
+
+  .dob-row input,
+  .dob-row select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dob-row > * {
+    flex: 1;
+  }
+
+  .gender-row {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .gender-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 6px;
+  }
+
+  .gender-options label {
+    font-weight: 400;
+  }
+
+  .checkbox-card {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background-color: #181818;
+    border-radius: 4px;
+    font-size: 13px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .checkbox-card input {
+    margin-top: 2px;
+  }
+
+  .step-footer-text {
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .step-footer-text a {
+    color: #ffffff; /* tadinya hijau */
+    text-decoration: none;
+  }
+
+  .step-footer-text a:hover {
+    text-decoration: underline;
+  }
+
+  .step {
+    display: none;
+  }
+  .step--active {
+    display: block;
+  }
+
+  @media (max-width: 600px) {
+    .signup-wrapper {
+      padding-inline: 16px;
+    }
+
+    .step-card,
+    .email-card {
+      padding-inline: 18px;
+    }
+
+    .email-title {
+      font-size: 32px;
+    }
+  }
+</style>
+
+</head>
+<body>
+<div class="signup-wrapper">
+
+<div class="signup-wrapper">
+
+  <!-- Form utama: semua screen ada di dalam form ini -->
+  <form id="signupForm" action="{{ url_for('signup') }}" method="POST" novalidate>
+
+    <!-- ========== SCREEN 0: EMAIL ========== -->
+    <div class="email-screen" id="emailScreen">
+      <div class="signup-logo">
+        <span>♪</span>
+      </div>
+
+      <h1 class="email-title">
+        Sign up to<br>start listening
+      </h1>
+
+
+      <div class="email-card">
+        {% if error %}
+  <div style="color: #ff5555; margin-bottom: 12px;">
+    {{ error }}
+  </div>
+{% endif %}
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"          
+            placeholder="name@example.com"
+            required
+          >
+        </div>
+
+        <div class="link-inline">Use phone number instead.</div>
+
+        <!-- step ke wizard, bukan submit -->
+        <button type="button" class="primary-btn" id="btnEmailNext">Next</button>
+
+        <div class="divider">or</div>
+
+        <button type="button" class="social-btn">Sign up with Google</button>
+        <button type="button" class="social-btn">Sign up with Apple</button>
+      </div>
+
+      <div class="email-bottom">
+        Already have an account?
+        <a href="{{ url_for('login') }}">Log in</a>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN 1–3: WIZARD ========== -->
+    <div class="wizard-screen" id="wizardScreen" style="display:none;">
+      <div class="signup-logo">
+        <span>♪</span>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-bar__fill" id="progressFill"></div>
+      </div>
+
+      <div class="step-card">
+
+        <!-- STEP 1: PASSWORD -->
+        <section class="step step--active" data-step="1">
+          <div class="step-header">
+            <button class="back-btn" type="button" data-back-email>‹</button>
+            <div>
+              <div>Step 1 of 3</div>
+              <div class="step-title">Create a password</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-row">
+              <input
+                type="password"
+                id="password"
+                name="password"          
+                placeholder="Create a password"
+                required
+              >
+              <button type="button" class="password-toggle" id="togglePwd">👁</button>
+            </div>
+          </div>
+
+          <div class="hint-list">
+            <div>Your password must contain at least</div>
+            <div class="hint-item">
+              <span class="hint-dot">✔</span><span>1 letter</span>
+            </div>
+            <div class="hint-item">
+              <span class="hint-dot">✔</span><span>1 number or special character (example: # ? ! &amp;)</span>
+            </div>
+            <div class="hint-item">
+              <span class="hint-dot">✔</span><span>10 characters</span>
+            </div>
+          </div>
+
+          <button type="button" class="primary-btn" data-next>Next</button>
+        </section>
+
+        <!-- STEP 2: ABOUT YOU -->
+        <section class="step" data-step="2">
+          <div class="step-header">
+            <button class="back-btn" type="button" data-back>‹</button>
+            <div>
+              <div>Step 2 of 3</div>
+              <div class="step-title">Tell us about yourself</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input
+              id="name"
+              name="display_name"            
+              type="text"
+              placeholder="This name will appear on your profile"
+            >
+          </div>
+
+          <div class="form-group">
+            <label>Date of birth</label>
+            <div class="dob-row">
+              <input type="text" placeholder="Day"   name="day">
+              <select name="month">
+                <option>January</option>
+                <option>February</option>
+                <option>March</option>
+                <option>April</option>
+                <option>May</option>
+                <option>June</option>
+                <option>July</option>
+                <option>August</option>
+                <option>September</option>
+                <option>October</option>
+                <option>November</option>
+                <option>December</option>
+              </select>
+              <input type="text" placeholder="Year"  name="year">
+            </div>
+          </div>
+
+          <div class="gender-row">
+            <div><strong>Gender</strong></div>
+            <div class="gender-options">
+              <label><input type="radio" name="gender" value="Man"> Man</label>
+              <label><input type="radio" name="gender" value="Woman"> Woman</label>
+              <label><input type="radio" name="gender" value="Prefer not to say"> Prefer not to say (indo)</label>
+            </div>
+          </div>
+
+          <button type="button" class="primary-btn" data-next>Next</button>
+        </section>
+
+        <!-- STEP 3: TERMS -->
+        <section class="step" data-step="3">
+          <div class="step-header">
+            <button class="back-btn" type="button" data-back>‹</button>
+            <div>
+              <div>Step 3 of 3</div>
+              <div class="step-title">Terms &amp; Conditions</div>
+            </div>
+          </div>
+
+          <div class="checkbox-card">
+            <input type="checkbox" id="chk1" name="no_marketing" checked>
+            <label for="chk1">
+              I would prefer not to receive marketing messages from MyMusic.
+            </label>
+          </div>
+
+          <div class="checkbox-card">
+            <input type="checkbox" id="chk2" name="share_data" checked>
+            <label for="chk2">
+              Share my registration data with MyMusic's content providers for marketing purposes.
+            </label>
+          </div>
+
+          <div class="step-footer-text">
+            MyMusic is a personalised service. By clicking on sign up, you agree to
+            MyMusic's <a href="#">Terms and Conditions of Use</a> and
+            <a href="#">Privacy Policy</a>.
+          </div>
+
+          <!-- INI YANG BENAR-BENAR SUBMIT KE BACKEND -->
+          <button type="submit" class="primary-btn" id="btnSignUp">Sign up</button>
+        </section>
+      </div>
+    </div>
+  </form>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // ---------- DOM references ----------
+  const emailScreen  = document.getElementById('emailScreen');
+  const wizardScreen = document.getElementById('wizardScreen');
+  const btnEmailNext = document.getElementById('btnEmailNext');
+  const form         = document.getElementById('signupForm');
+
+  const emailInput    = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const nameInput     = document.getElementById('name');
+
+  const dayInput      = form ? form.elements['day']   : null;
+  const monthInput    = form ? form.elements['month'] : null;
+  const yearInput     = form ? form.elements['year']  : null;
+  const genderInputs  = form ? form.elements['gender'] : null;
+
+  const steps        = document.querySelectorAll('.step');
+  const progressFill = document.getElementById('progressFill');
+  const totalSteps   = steps.length;
+  let currentStep    = 1;
+
+  const togglePwd    = document.getElementById('togglePwd');
+  const pwdInput     = passwordInput;
+
+  const hintItems    = document.querySelectorAll('.hint-item');
+  const step1NextBtn = document.querySelector('.step[data-step="1"] .primary-btn[data-next]');
+
+  // ---------- Helper: tampilkan error ----------
+  function showError(message) {
+    alert(message);
+  }
+
+  function clearError() {
+    // nanti kalau mau pakai box error sendiri, logic-nya taruh di sini
+  }
+
+  // ---------- Validasi per bagian ----------
+  function validateEmail() {
+    if (!emailInput) return true;
+    const value = (emailInput.value || '').trim();
+
+    if (!value) {
+      showError('Masukkan alamat email.');
+      emailInput.focus();
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      showError('Format email tidak valid.');
+      emailInput.focus();
+      return false;
+    }
+
+    return true;
+  }
+
+  function validatePassword() {
+    if (!passwordInput) return true;
+    const pwd = passwordInput.value || '';
+
+    // supaya konsisten dengan teks "10 characters"
+    if (pwd.length < 10) {
+      showError('Password minimal 10 karakter.');
+      passwordInput.focus();
+      return false;
+    }
+    if (!/[A-Za-z]/.test(pwd)) {
+      showError('Password harus mengandung minimal 1 huruf.');
+      passwordInput.focus();
+      return false;
+    }
+    if (!(/[0-9]/.test(pwd) || /[^A-Za-z0-9]/.test(pwd))) {
+      showError('Password harus mengandung angka atau simbol (misalnya # ? ! &).');
+      passwordInput.focus();
+      return false;
+    }
+    return true;
+  }
+
+  function validateProfile() {
+    if (!nameInput || !dayInput || !monthInput || !yearInput) return true;
+
+    const nameVal = (nameInput.value || '').trim();
+    if (!nameVal) {
+      showError('Nama tidak boleh kosong.');
+      nameInput.focus();
+      return false;
+    }
+
+    const dayVal = parseInt(dayInput.value, 10);
+    if (isNaN(dayVal) || dayVal < 1 || dayVal > 31) {
+      showError('Tanggal lahir (Day) tidak valid.');
+      dayInput.focus();
+      return false;
+    }
+
+    const yearVal = parseInt(yearInput.value, 10);
+    const nowYear = new Date().getFullYear();
+    if (isNaN(yearVal) || yearVal < 1900 || yearVal > nowYear) {
+      showError('Tahun lahir (Year) tidak valid.');
+      yearInput.focus();
+      return false;
+    }
+
+    // Cek gender dipilih
+    let genderSelected = false;
+    if (genderInputs) {
+      if (genderInputs.length !== undefined) {
+        for (let i = 0; i < genderInputs.length; i++) {
+          if (genderInputs[i].checked) {
+            genderSelected = true;
+            break;
+          }
+        }
+      } else {
+        genderSelected = genderInputs.checked;
+      }
+    }
+
+    if (!genderSelected) {
+      showError('Pilih gender.');
+      return false;
+    }
+
+    return true;
+  }
+
+  // ---------- Fungsi step & progress ----------
+  function showStep(step) {
+    currentStep = step;
+    steps.forEach(section => {
+      const s = Number(section.dataset.step);
+      section.classList.toggle('step--active', s === step);
+    });
+
+    if (progressFill) {
+      const percent = (step / totalSteps) * 100;
+      progressFill.style.width = percent + '%';
+    }
+  }
+
+  // ---------- Screen switching (email → wizard) ----------
+  if (btnEmailNext) {
+    btnEmailNext.addEventListener('click', () => {
+      clearError();
+      if (!validateEmail()) return;
+
+      emailScreen.style.display  = 'none';
+      wizardScreen.style.display = 'block';
+      showStep(1);
+    });
+  }
+
+  // ---------- Next antar step (1 → 2, 2 → 3) ----------
+  document.querySelectorAll('[data-next]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      clearError();
+
+      if (currentStep === 1) {
+        if (!validatePassword()) return;
+      } else if (currentStep === 2) {
+        if (!validateProfile()) return;
+      }
+
+      if (currentStep < totalSteps) {
+        showStep(currentStep + 1);
+      }
+    });
+  });
+
+  // ---------- Back antar step (2 → 1, 3 → 2) ----------
+  document.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      clearError();
+      if (currentStep > 1) {
+        showStep(currentStep - 1);
+      }
+    });
+  });
+
+  // ---------- Back ke email screen dari step 1 ----------
+  const backToEmailBtn = document.querySelector('[data-back-email]');
+  if (backToEmailBtn) {
+    backToEmailBtn.addEventListener('click', () => {
+      clearError();
+      wizardScreen.style.display = 'none';
+      emailScreen.style.display  = 'block';
+    });
+  }
+
+  // ---------- Validasi saat submit form (Step 3: Sign up) ----------
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      clearError();
+
+      if (!validateEmail()) {
+        e.preventDefault();
+        emailScreen.style.display  = 'block';
+        wizardScreen.style.display = 'none';
+        return;
+      }
+      if (!validatePassword()) {
+        e.preventDefault();
+        emailScreen.style.display  = 'none';
+        wizardScreen.style.display = 'block';
+        showStep(1);
+        return;
+      }
+      if (!validateProfile()) {
+        e.preventDefault();
+        emailScreen.style.display  = 'none';
+        wizardScreen.style.display = 'block';
+        showStep(2);
+        return;
+      }
+    });
+  }
+
+  // ---------- Toggle show/hide password ----------
+  if (togglePwd && pwdInput) {
+    togglePwd.addEventListener('click', () => {
+      const isPwd = pwdInput.type === 'password';
+      pwdInput.type = isPwd ? 'text' : 'password';
+    });
+  }
+
+  // ---------- HINT PASSWORD REAKTIF ----------
+  function updatePasswordHints() {
+    if (!pwdInput || !hintItems.length) return;
+
+    const pwd = pwdInput.value || '';
+
+    const hasLetter      = /[A-Za-z]/.test(pwd);
+    const hasNumOrSymbol = /[0-9]/.test(pwd) || /[^A-Za-z0-9]/.test(pwd);
+    const hasMinLength   = pwd.length >= 10;   // sesuai teks "10 characters"
+
+    const conditions = [hasLetter, hasNumOrSymbol, hasMinLength];
+
+    hintItems.forEach((item, idx) => {
+      if (!item) return;
+      if (conditions[idx]) {
+        item.classList.add('hint-item--ok');
+      } else {
+        item.classList.remove('hint-item--ok');
+      }
+    });
+
+    if (step1NextBtn) {
+      const allOk = conditions.every(Boolean);
+      step1NextBtn.disabled = !allOk;
+      step1NextBtn.classList.toggle('primary-btn--disabled', !allOk);
+    }
+  }
+
+  if (pwdInput) {
+    pwdInput.addEventListener('input', updatePasswordHints);
+    updatePasswordHints(); // state awal
+  }
+
+  // pastikan step pertama aktif (kalau user langsung ke wizard)
+  showStep(1);
+});
+</script>
+
+
+
+</body>
+</html>
